@@ -273,32 +273,33 @@ public final class DexScanner {
                             && !(methodReference).getName().contains("getExtras"))
                             || (methodReference).getName().contains("hasExtra"))) {
 
-                        // get the type of extra, e.g. getString -> String, see the class Bundle for its getter methods
+                        // get the type of extra, e.g. getStringExtra -> String, see the class Intent for its getter methods
                         String extraType = methodReference.getName().substring(3, methodReference.getName().length() - 5);
                         // TODO: convert the extraType into an internal representation, .e.g. -> IntegerArray -> Integer[]
 
                         // get the key of the extra
                         String extraKey = getExtraKey(instructions, i, invoke.getRegisterD(), classVariables);
                         if (extraKey != null)
-                            extras.add(new Extra(extraKey, extraType));
+                            extras.add(new Extra(extraKey, convertExtraType(extraType)));
 
                         // look if the target method is some Bundle class method
                     } else if (methodReference.getDefiningClass().equals("Landroid/os/Bundle;")
                             && (methodReference.getName().contains("get")
-                            || (methodReference).getName().contains("containsKey")) // TODO: bundle.get Object type
+                            // can only derive the key from it, and only if the key is present -> may remove
+                            || (methodReference).getName().contains("containsKey"))
                             && isIntentBundle(instructions, i, invoke.getRegisterC())) {
 
-                        // get the type of extra, e.g. getString -> String
+                        // get the type of extra, e.g. getString -> String, see the class Bundle for its getter methods
                         String extraType = methodReference.getName().substring(3);
 
-                        // TODO: why this ???
+                        // only tells us the name of the key if the key is present in the bundle, nothing about its value type
                         if (methodReference.getName().contains("containsKey"))
                             extraType = "";
 
                         // get the key of the extra
                         String extraKey = getExtraKey(instructions, i, invoke.getRegisterD(), classVariables);
                         if (extraKey != null)
-                            extras.add(new Extra(extraKey, extraType));
+                            extras.add(new Extra(extraKey, convertExtraType(extraType)));
                     }
                 } else if (instruction.getOpcode() == Opcode.CONST_STRING
                         || instruction.getOpcode() == Opcode.CONST_STRING_JUMBO) {
@@ -316,6 +317,28 @@ public final class DexScanner {
                 }
             }
         }
+    }
+
+    /**
+     * Converts the type of some extra into an internal representation. That is, the phrase
+     * 'ArrayList' is replaced by '<>' and the phrase 'Array' is replaced by '[]'; the
+     * remaining part is left unchanged.
+     *
+     * @param extraType The extra type to be converted.
+     * @return Returns the converted extra type.
+     */
+    private String convertExtraType(String extraType) {
+
+        System.out.println("Original Type: " + extraType);
+        String convertedType = extraType;
+
+        if (extraType.endsWith("ArrayList")) {
+            convertedType = extraType.replace("ArrayList", "<>");
+        } else if (extraType.endsWith("Array")) {
+            convertedType = extraType.replace("Array", "[]");
+        }
+        System.out.println("Converted Type: " + convertedType);
+        return convertedType;
     }
 
 
