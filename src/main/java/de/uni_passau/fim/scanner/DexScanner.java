@@ -273,8 +273,9 @@ public final class DexScanner {
                             && !(methodReference).getName().contains("getExtras"))
                             || (methodReference).getName().contains("hasExtra"))) {
 
-                        // get the type of extra, e.g. getString -> String
+                        // get the type of extra, e.g. getString -> String, see the class Bundle for its getter methods
                         String extraType = methodReference.getName().substring(3, methodReference.getName().length() - 5);
+                        // TODO: convert the extraType into an internal representation, .e.g. -> IntegerArray -> Integer[]
 
                         // get the key of the extra
                         String extraKey = getExtraKey(instructions, i, invoke.getRegisterD(), classVariables);
