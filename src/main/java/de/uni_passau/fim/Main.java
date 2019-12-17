@@ -28,8 +28,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         // File apkFile = new File("/home/auermich/smali/ws.xsoh.etar_17.apk");
-        // File apkFile = new File("/home/auermich/tools/mate-commander/BMI-debug.apk");
-        File apkFile = new File("C:\\Users\\Michael\\git\\mate-commander\\ws.xsoh.etar_17.apk");
+        File apkFile = new File("/home/auermich/tools/mate-commander/ws.xsoh.etar_17.apk");
+        // File apkFile = new File("C:\\Users\\Michael\\git\\mate-commander\\ws.xsoh.etar_17.apk");
 
         MultiDexContainer<? extends DexBackedDexFile> apk
                 = DexFileFactory.loadDexContainer(apkFile, API_OPCODE);
