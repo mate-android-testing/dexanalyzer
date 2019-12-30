@@ -29,7 +29,16 @@ public class Main {
 
         // File apkFile = new File("/home/auermich/smali/ws.xsoh.etar_17.apk");
         // File apkFile = new File("/home/auermich/tools/mate-commander/BMI-debug.apk");
-        File apkFile = new File("C:\\Users\\Michael\\git\\mate-commander\\ws.xsoh.etar_17.apk");
+        // File apkFile = new File("C:\\Users\\Michael\\git\\mate-commander\\ws.xsoh.etar_17.apk");
+
+        if (args.length < 1) {
+            throw new IllegalStateException("No APK file specified!");
+        }
+
+        // we assume that the name of the APK corresponds to the package name of the app
+        File apkFile = new File(args[0]);
+        String packageName = apkFile.getName().replace(".apk", "");
+        System.out.println("Package Name: " + packageName);
 
         MultiDexContainer<? extends DexBackedDexFile> apk
                 = DexFileFactory.loadDexContainer(apkFile, API_OPCODE);
@@ -50,7 +59,8 @@ public class Main {
         List<Component> components = dexScanner.scan();
 
         // write out collected information as xml in same dir as APK
-        File outputDir = new File(apkFile.getParentFile(),"static_data");
+        File outputDir = new File(apkFile.getParentFile(),
+                packageName + File.separator + "static_data");
         outputDir.mkdirs();
 
         File outputFile = new File(outputDir, "staticIntentInfo.xml");
