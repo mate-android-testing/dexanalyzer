@@ -308,7 +308,7 @@ public final class DexScanner {
                     if (!referenceInstruction.getReference().toString().isEmpty()) {
 
                         String methodString = ((StringReference) (referenceInstruction).getReference()).getString();
-                        if (!stringUsedForOwnIntents(instructions, i, ((Instruction21c) instruction).getRegisterA())) {
+                        if (!stringUsedForOwnIntents(instructions, i, ((OneRegisterInstruction) instruction).getRegisterA())) {
                             methodStrings.add(methodString);
                         }
 
