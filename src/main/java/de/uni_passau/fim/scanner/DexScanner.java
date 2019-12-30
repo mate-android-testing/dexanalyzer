@@ -275,7 +275,6 @@ public final class DexScanner {
 
                         // get the type of extra, e.g. getStringExtra -> String, see the class Intent for its getter methods
                         String extraType = methodReference.getName().substring(3, methodReference.getName().length() - 5);
-                        // TODO: convert the extraType into an internal representation, .e.g. -> IntegerArray -> Integer[]
 
                         // get the key of the extra
                         String extraKey = getExtraKey(instructions, i, invoke.getRegisterD(), classVariables);
@@ -329,7 +328,7 @@ public final class DexScanner {
      */
     private String convertExtraType(String extraType) {
 
-        System.out.println("Original Type: " + extraType);
+        // System.out.println("Original Type: " + extraType);
         String convertedType = extraType;
 
         if (extraType.endsWith("ArrayList")) {
@@ -337,7 +336,7 @@ public final class DexScanner {
         } else if (extraType.endsWith("Array")) {
             convertedType = extraType.replace("Array", "[]");
         }
-        System.out.println("Converted Type: " + convertedType);
+        // System.out.println("Converted Type: " + convertedType);
         return convertedType;
     }
 
