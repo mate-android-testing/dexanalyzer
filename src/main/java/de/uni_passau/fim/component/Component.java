@@ -54,4 +54,9 @@ public abstract class Component {
         input = input.replace("<", "&lt;");
         return input;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

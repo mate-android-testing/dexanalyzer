@@ -56,7 +56,14 @@ public class Main {
 
         // scan dex files for components
         DexScanner dexScanner = new DexScanner(dexFiles, apkFile.getPath());
-        List<Component> components = dexScanner.scan();
+        List<Component> components = dexScanner.lookUpComponents();
+
+        for (Component component : components) {
+            System.out.println(component);
+        }
+
+        // look up for dynamically registered broadcast receivers
+        dexScanner.lookUpDynamicBroadcastReceivers(components);
 
         // write out collected information as xml in same dir as APK
         File outputDir = new File(apkFile.getParentFile(),
@@ -66,8 +73,11 @@ public class Main {
         File outputFile = new File(outputDir, "staticIntentInfo.xml");
         PrintStream printStream = new PrintStream(outputFile);
 
+        /*
+
         // write xml header
-        printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>");
+        printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"
+                + System.lineSeparator());
 
         components.forEach(component -> {
             printStream.print(component.toXml());
@@ -75,5 +85,7 @@ public class Main {
         });
 
         printStream.close();
+
+        */
     }
 }

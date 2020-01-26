@@ -15,6 +15,7 @@ import org.jf.dexlib2.iface.instruction.TwoRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.formats.*;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.StringReference;
 import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
@@ -39,11 +40,106 @@ public final class DexScanner {
      * Initialises the scanner.
      *
      * @param dexFiles The list of classes.dex files.
-     * @param apkPath The path to the APK file.
+     * @param apkPath  The path to the APK file.
      */
     public DexScanner(List<DexFile> dexFiles, String apkPath) {
         this.dexFiles = dexFiles;
         this.apkPath = apkPath;
+    }
+
+    public void lookUpDynamicBroadcastReceivers(List<Component> components) {
+
+        for (DexFile dexFile : dexFiles) {
+            List<ClassDef> classes = Lists.newArrayList(dexFile.getClasses());
+
+            // TODO: filter out ART classes
+            for (ClassDef classDef : classes) {
+                for (Method method : classDef.getMethods()) {
+                    scanMethodForDynamicBroadcastReceiver(method);
+                }
+            }
+        }
+    }
+
+    private void scanMethodForDynamicBroadcastReceiver(Method method) {
+
+        MethodImplementation implementation = method.getImplementation();
+
+        if (implementation != null) {
+
+            List<Instruction> instructions = Lists.newArrayList(implementation.getInstructions());
+
+            for (int i = 0; i < instructions.size(); i++) {
+
+                Instruction instruction = instructions.get(i);
+
+                // only invoke-virtual instructions can refer to registering a broadcast receiver dynamically
+                if (instruction.getOpcode() == Opcode.INVOKE_VIRTUAL) {
+
+                    Instruction35c invoke = (Instruction35c) instruction;
+                    Reference targetMethod = invoke.getReference();
+
+                    // check whether Context.registerReceiver() is called
+                    if (targetMethod.toString().equals("Landroid/content/Context;->" +
+                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;)Landroid/content/Intent;")) {
+
+                        System.out.println("Backtracking required within method: " + method.toString());
+
+                        // backward track which receiver was passed + intent filter
+
+                        // backtrack from preceding instruction
+                        int index = i - 1;
+
+                        backtrackReceiver(instructions, index, invoke.getRegisterD());
+
+
+                    } else if (targetMethod.toString().equals("nothing")) {
+                        // TODO: add missing overloaded registerReceiver() methods
+                    }
+
+                }
+            }
+        }
+    }
+
+    private void backtrackReceiver(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+
+        // unless we haven't reached the first instruction
+        while (currentInstructionIndex >= 0) {
+
+            Instruction instruction = instructions.get(currentInstructionIndex);
+
+            // TODO: there might be several ways to get a broadcast receiver instance
+
+            // check whether the corresponding broadcast receiver has been initialised by the current instruction
+            if (instruction.getOpcode() == Opcode.NEW_INSTANCE) {
+
+                Instruction21c newInstance = (Instruction21c) instruction;
+                System.out.println("Register A: " + newInstance.getRegisterA());
+
+                // check whether the register id matches the broadcast receiver parameter register id
+                if (newInstance.getRegisterA() == registerID) {
+                    System.out.println("Receiver: " + newInstance.getReference());
+                }
+            }
+            currentInstructionIndex--;
+        }
+
+        /*
+         * A typical call to Context.registerReceiver() looks as follows:
+         *
+         * invoke-virtual {p0, v1, v0}, Landroid/content/Context;->
+         * registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)
+         * Landroid/content/Intent;
+         *
+         * where
+         *   p0 refers to the context object
+         *   v1 refers to the broadcast receiver instance
+         *   v0 refers to the attached intent filter
+         */
+
+
     }
 
     /**
@@ -52,7 +148,7 @@ public final class DexScanner {
      *
      * @return Returns the list of retrieved components.
      */
-    public List<Component> scan() {
+    public List<Component> lookUpComponents() {
 
         List<Component> components = new ArrayList<>();
         Map<String, Map<String, String>> allVariables = new HashMap<>();
@@ -66,6 +162,7 @@ public final class DexScanner {
                 Component component = findComponent(classes, classDef);
 
                 if (component != null) {
+                    // we deal with an activity, a service or a broadcast receiver
 
                     components.add(component);
 
@@ -97,17 +194,17 @@ public final class DexScanner {
      * Invokes the correct scan method depending on the component's type.
      *
      * @param component The given component.
-     * @param method The current method to be inspected.
+     * @param method    The current method to be inspected.
      * @param variables The variable assignments of the component/class.
      */
     private void scanMethod(Component component, Method method, Map<String, String> variables) {
 
         if (component instanceof Activity) {
-            scanActivity((Activity)component, method, variables);
+            scanActivity((Activity) component, method, variables);
         } else if (component instanceof Service) {
-            scanService((Service)component, method, variables);
+            scanService((Service) component, method, variables);
         } else if (component instanceof BroadcastReceiver) {
-            scanReceiver((BroadcastReceiver)component, method, variables);
+            scanReceiver((BroadcastReceiver) component, method, variables);
         }
     }
 
@@ -218,10 +315,10 @@ public final class DexScanner {
     /**
      * Scans a component's interesting methods, e.g. the onCreate method of an activity, for strings and extras.
      *
-     * @param method The method to be inspected.
+     * @param method         The method to be inspected.
      * @param classVariables The variable assignments of the entire class.
-     * @param methodStrings The method strings that are getting collected during scanning.
-     * @param extras The extras that are getting collected during scanning.
+     * @param methodStrings  The method strings that are getting collected during scanning.
+     * @param extras         The extras that are getting collected during scanning.
      */
     private void scanComponentMethod(Method method, Map<String, String> classVariables,
                                      Set<String> methodStrings, List<Extra> extras) {
@@ -344,11 +441,11 @@ public final class DexScanner {
     /**
      * Scans an activity's onCreate and onNewIntent method.
      *
-     * @param activity The activity component.
-     * @param method The current method.
+     * @param activity       The activity component.
+     * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanActivity(Activity activity, Method method, Map<String,String> classVariables) {
+    private void scanActivity(Activity activity, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onCreate")) {
             scanComponentMethod(method, classVariables, activity.getOnCreateStrings(), activity.getOnCreateExtras());
         } else if (method.getName().equals("onNewIntent")) {
@@ -359,11 +456,11 @@ public final class DexScanner {
     /**
      * Scans a service's onStartCommand and onHandleIntent method.
      *
-     * @param service The service component.
-     * @param method The current method.
+     * @param service        The service component.
+     * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanService(Service service, Method method, Map<String,String> classVariables) {
+    private void scanService(Service service, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onStartCommand")) {
             scanComponentMethod(method, classVariables, service.getOnStartCommandStrings(), service.getOnStartCommandExtras());
         } else if (method.getName().equals("onHandleIntent")) {
@@ -374,11 +471,11 @@ public final class DexScanner {
     /**
      * Scans a receiver's onReceive method.
      *
-     * @param receiver The broadcast receiver component.
-     * @param method The current method.
+     * @param receiver       The broadcast receiver component.
+     * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanReceiver(BroadcastReceiver receiver, Method method, Map<String,String> classVariables) {
+    private void scanReceiver(BroadcastReceiver receiver, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onReceive")) {
             scanComponentMethod(method, classVariables, receiver.getOnReceiveStrings(), receiver.getOnReceiveExtras());
         }
@@ -418,13 +515,13 @@ public final class DexScanner {
      * as parts of its registers a given register.
      *
      * @param instruction The invoke instruction.
-     * @param register  The register to check whether it is used in the given instruction.
+     * @param register    The register to check whether it is used in the given instruction.
      * @return Returns {@code true} if the invoke instruction uses the given register,
-     *              otherwise {@code false}.
+     * otherwise {@code false}.
      */
     private boolean isInvokeInstructionUsingRegister(Instruction instruction, int register) {
 
-        Instruction35c invoke = (Instruction35c)instruction;
+        Instruction35c invoke = (Instruction35c) instruction;
         return invoke.getRegisterD() == register
                 || invoke.getRegisterE() == register
                 || invoke.getRegisterF() == register
@@ -460,15 +557,15 @@ public final class DexScanner {
             } else if (instruction.getOpcode() == Opcode.MOVE_RESULT_OBJECT) {
                 // we need a special treatment for this kind of move instruction
 
-                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction)instruction;
+                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction) instruction;
 
                 if (oneRegisterInstruction.getRegisterA() == register) {
 
                     // inspect the predecessor
-                    if ((i-1 >= 0) && instructions.get(i - 1).getOpcode() == Opcode.INVOKE_VIRTUAL) {
+                    if ((i - 1 >= 0) && instructions.get(i - 1).getOpcode() == Opcode.INVOKE_VIRTUAL) {
 
-                        Instruction35c invoke = (Instruction35c)instructions.get(i-1);
-                        MethodReference methodReference = (MethodReference)invoke.getReference();
+                        Instruction35c invoke = (Instruction35c) instructions.get(i - 1);
+                        MethodReference methodReference = (MethodReference) invoke.getReference();
 
                         if (methodReference.getDefiningClass().equals("Landroid/content/Intent;")
                                 && methodReference.getName().equals("getExtras")) {
@@ -507,7 +604,7 @@ public final class DexScanner {
             if (instruction.getOpcode() == Opcode.CONST_STRING
                     || instruction.getOpcode() == Opcode.CONST_STRING_JUMBO) {
 
-                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction)instruction;
+                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction) instruction;
 
                 if (oneRegisterInstruction.getRegisterA() == register) {
                     // TODO: getReference().getString() might be the same as getReference().toString()
@@ -516,7 +613,7 @@ public final class DexScanner {
             } else if (instruction.getOpcode() == Opcode.SGET_OBJECT
                     || instruction.getOpcode() == Opcode.IGET_OBJECT) {
 
-                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction)instruction;
+                OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction) instruction;
 
                 if (oneRegisterInstruction.getRegisterA() == register) {
                     return globalStrings.get(((FieldReference) ((ReferenceInstruction) instruction).getReference()).getName());
@@ -556,7 +653,7 @@ public final class DexScanner {
     /**
      * Looks up the constructor of relevant components for global variable assignments.
      *
-     * @param method   The method representing the constructor.
+     * @param method The method representing the constructor.
      * @return Returns a mapping for variables and their values.
      */
     private Map<String, String> lookupConstructor(Method method) {
