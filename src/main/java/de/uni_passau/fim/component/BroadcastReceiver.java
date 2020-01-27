@@ -10,10 +10,19 @@ public class BroadcastReceiver extends Component {
     private List<Extra> onReceiveExtras;
     private Set<String> onReceiveStrings;
 
+    private boolean isDynamicReceiver = false;
+
     public BroadcastReceiver(String name) {
         super(name);
         onReceiveExtras = new ArrayList<>();
         onReceiveStrings = new LinkedHashSet<>();
+    }
+
+    /**
+     * Marks the broadcast receiver as a dynamic broadcast receiver.
+     */
+    public void markAsDynamicReceiver() {
+        isDynamicReceiver = true;
     }
 
     public List<Extra> getOnReceiveExtras() {
@@ -26,6 +35,7 @@ public class BroadcastReceiver extends Component {
 
     public String toXml() {
         StringBuilder output = new StringBuilder("<receiver name=\"" + makeXmlConform(name) + "\">\n");
+        output.append("    <dynamic value=\"" + makeXmlConform(String.valueOf(isDynamicReceiver)) + "\"/>\n");
         output.append(super.toXml());
         output.append(onReceiveToXml());
         output.append("</receiver>\n");

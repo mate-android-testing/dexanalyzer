@@ -6,6 +6,7 @@ import de.uni_passau.fim.component.Activity;
 import de.uni_passau.fim.component.BroadcastReceiver;
 import de.uni_passau.fim.component.Component;
 import de.uni_passau.fim.component.Service;
+import de.uni_passau.fim.utility.Utility;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -21,6 +22,7 @@ import org.jf.dexlib2.iface.value.EncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 public final class DexScanner {
 
@@ -49,11 +51,19 @@ public final class DexScanner {
 
     public void lookUpDynamicBroadcastReceivers(List<Component> components) {
 
+        Pattern exclusionPattern = Utility.readExcludePatterns();
+
         for (DexFile dexFile : dexFiles) {
             List<ClassDef> classes = Lists.newArrayList(dexFile.getClasses());
 
-            // TODO: filter out ART classes
             for (ClassDef classDef : classes) {
+
+                // skip ART classes
+                String className = Utility.dottedClassName(classDef.toString());
+                if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
+                    continue;
+                }
+
                 for (Method method : classDef.getMethods()) {
                     scanMethodForDynamicBroadcastReceiver(components, method);
                 }
@@ -118,6 +128,9 @@ public final class DexScanner {
                                     break;
                                 }
                             }
+
+                            // mark receiver as dynamic one
+                            ((BroadcastReceiver) receiver).markAsDynamicReceiver();
 
                             // backtrack intent filter (inherently adds the filter)
                             backtrackIntentFilter(receiver, instructions, index, invoke.getRegisterE());
@@ -243,7 +256,7 @@ public final class DexScanner {
                 // check whether the register id matches the broadcast receiver parameter register id
                 if (newInstance.getRegisterA() == registerID) {
                     System.out.println("Receiver: " + newInstance.getReference());
-                    String componentName = dottedClassName(newInstance.getReference().toString());
+                    String componentName = Utility.dottedClassName(newInstance.getReference().toString());
                     Component component = new BroadcastReceiver(componentName);
                     return component;
                 }
@@ -261,6 +274,9 @@ public final class DexScanner {
      */
     public List<Component> lookUpComponents() {
 
+        // exclude certain classes from inspection, e.g. ART classes
+        Pattern exclusionPattern = Utility.readExcludePatterns();
+
         List<Component> components = new ArrayList<>();
         Map<String, Map<String, String>> allVariables = new HashMap<>();
 
@@ -269,6 +285,12 @@ public final class DexScanner {
             List<ClassDef> classes = Lists.newArrayList(dexFile.getClasses());
 
             for (ClassDef classDef : classes) {
+
+                // skip ART classes
+                String className = Utility.dottedClassName(classDef.toString());
+                if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
+                    continue;
+                }
 
                 Component component = findComponent(classes, classDef);
 
@@ -861,137 +883,18 @@ public final class DexScanner {
      */
     private Component findComponent(List<ClassDef> classes, ClassDef currentClass) {
 
-        if (isActivity(classes, currentClass)) {
-            return new Activity(dottedClassName(currentClass.toString()));
-        } else if (isService(classes, currentClass)) {
-            return new Service(dottedClassName(currentClass.toString()));
-        } else if (isBroadcastReceiver(classes, currentClass)) {
-            return new BroadcastReceiver(dottedClassName(currentClass.toString()));
+        String className = Utility.dottedClassName(currentClass.toString());
+
+        if (Utility.isActivity(classes, currentClass)) {
+            return new Activity(className);
+        } else if (Utility.isService(classes, currentClass)) {
+            return new Service(className);
+        } else if (Utility.isBroadcastReceiver(classes, currentClass)) {
+            return new BroadcastReceiver(className);
         } else {
             return null;
         }
     }
 
-    /**
-     * Transforms a class name containing '/' into a class name with '.'
-     * instead, and removes the leading 'L' as well as the ';' at the end.
-     *
-     * @param className The class name which should be transformed.
-     * @return The transformed class name.
-     */
-    private String dottedClassName(String className) {
-        className = className.substring(className.indexOf('L') + 1, className.indexOf(';'));
-        className = className.replace('/', '.');
-        return className;
-    }
 
-    /**
-     * Checks whether the given class represents an activity by checking against the super class.
-     *
-     * @param classes      The set of classes.
-     * @param currentClass The class to be inspected.
-     * @return Returns {@code true} if the current class is an activity,
-     * otherwise {@code false}.
-     */
-    // TODO: could use static set in each component of super classes which are returned by some abstract method
-    private boolean isActivity(List<ClassDef> classes, ClassDef currentClass) {
-
-        // TODO: this approach might be quite time-consuming, may find a better solution
-
-        String superClass = currentClass.getSuperclass();
-        boolean abort = false;
-
-        while (!abort && superClass != null && !superClass.equals("Ljava/lang/Object;")) {
-
-            abort = true;
-
-            if (superClass.equals("Landroid/app/Activity;")
-                    || superClass.equals("Landroid/support/v7/app/AppCompatActivity;")
-                    || superClass.equals("Landroid/support/v7/app/ActionBarActivity;")
-                    || superClass.equals("Landroid/support/v4/app/FragmentActivity;")) {
-                return true;
-            } else {
-                // step up in the class hierarchy
-                for (ClassDef classDef : classes) {
-                    if (classDef.toString().equals(superClass)) {
-                        superClass = classDef.getSuperclass();
-                        abort = false;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether the given class represents a service by checking against the super class.
-     *
-     * @param classes      The set of classes.
-     * @param currentClass The class to be inspected.
-     * @return Returns {@code true} if the current class is a service,
-     * otherwise {@code false}.
-     */
-    private boolean isService(List<ClassDef> classes, ClassDef currentClass) {
-
-        // TODO: this approach might be quite time-consuming, may find a better solution
-
-        String superClass = currentClass.getSuperclass();
-        boolean abort = false;
-
-        while (!abort && superClass != null && !superClass.equals("Ljava/lang/Object;")) {
-
-            abort = true;
-
-            if (superClass.equals("Landroid/app/Service;")
-                    || superClass.equals("Landroid/app/IntentService;")) {
-                return true;
-            } else {
-                // step up in the class hierarchy
-                for (ClassDef classDef : classes) {
-                    if (classDef.toString().equals(superClass)) {
-                        superClass = classDef.getSuperclass();
-                        abort = false;
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether the given class represents a broadcast receiver by checking against the super class.
-     *
-     * @param classes      The set of classes.
-     * @param currentClass The class to be inspected.
-     * @return Returns {@code true} if the current class is a broadcast receiver,
-     * otherwise {@code false}.
-     */
-    private boolean isBroadcastReceiver(List<ClassDef> classes, ClassDef currentClass) {
-
-        // TODO: this approach might be quite time-consuming, may find a better solution
-
-        String superClass = currentClass.getSuperclass();
-        boolean abort = false;
-
-        while (!abort && superClass != null && !superClass.equals("Ljava/lang/Object;")) {
-
-            abort = true;
-
-            // TODO: there are several sub classes: https://developer.android.com/reference/android/content/BroadcastReceiver
-
-            if (superClass.equals("Landroid/content/BroadcastReceiver;")
-                    || superClass.equals("Landroid/appwidget/AppWidgetProvider;")) {
-                return true;
-            } else {
-                // step up in the class hierarchy
-                for (ClassDef classDef : classes) {
-                    if (classDef.toString().equals(superClass)) {
-                        superClass = classDef.getSuperclass();
-                        abort = false;
-                    }
-                }
-            }
-        }
-        return false;
-    }
 }

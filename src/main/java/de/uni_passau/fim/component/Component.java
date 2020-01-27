@@ -116,11 +116,11 @@ public abstract class Component {
             output.append("    <intent-filter>\n");
 
             for (String action : actions) {
-                output.append("        <action='" + makeXmlConform(action) + "'/>\n");
+                output.append("        <action name='" + makeXmlConform(action) + "'/>\n");
             }
 
             for (String category : categories) {
-                output.append("        <category='" + makeXmlConform(category) + "'/>\n");
+                output.append("        <category name='" + makeXmlConform(category) + "'/>\n");
             }
 
             output.append("    </intent-filter>\n");
