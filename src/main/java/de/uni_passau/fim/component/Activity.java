@@ -39,7 +39,7 @@ public class Activity extends Component {
 
     public String toXml() {
         StringBuilder output = new StringBuilder("<activity name=\"" + makeXmlConform(name) + "\">\n");
-        output.append(globalToXml());
+        output.append(super.toXml());
         output.append(onCreateToXml());
         output.append(onNewIntentToXml());
         output.append("</activity>\n");

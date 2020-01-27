@@ -39,7 +39,7 @@ public class Service extends Component{
 
     public String toXml() {
         StringBuilder output = new StringBuilder("<service name=\"" + makeXmlConform(name) + "\">\n");
-        output.append(globalToXml());
+        output.append(super.toXml());
         output.append(onStartCommandToXml());
         output.append(onHandleIntentToXml());
         output.append("</service>\n");

@@ -26,7 +26,7 @@ public class BroadcastReceiver extends Component {
 
     public String toXml() {
         StringBuilder output = new StringBuilder("<receiver name=\"" + makeXmlConform(name) + "\">\n");
-        output.append(globalToXml());
+        output.append(super.toXml());
         output.append(onReceiveToXml());
         output.append("</receiver>\n");
 

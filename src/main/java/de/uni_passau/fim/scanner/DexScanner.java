@@ -55,13 +55,13 @@ public final class DexScanner {
             // TODO: filter out ART classes
             for (ClassDef classDef : classes) {
                 for (Method method : classDef.getMethods()) {
-                    scanMethodForDynamicBroadcastReceiver(method);
+                    scanMethodForDynamicBroadcastReceiver(components, method);
                 }
             }
         }
     }
 
-    private void scanMethodForDynamicBroadcastReceiver(Method method) {
+    private void scanMethodForDynamicBroadcastReceiver(List<Component> components, Method method) {
 
         MethodImplementation implementation = method.getImplementation();
 
@@ -86,12 +86,42 @@ public final class DexScanner {
 
                         System.out.println("Backtracking required within method: " + method.toString());
 
-                        // backward track which receiver was passed + intent filter
+                        /*
+                         * A typical call to Context.registerReceiver() looks as follows:
+                         *
+                         * invoke-virtual {p0, v1, v0}, Landroid/content/Context;->
+                         * registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)
+                         * Landroid/content/Intent;
+                         *
+                         * where
+                         *   p0 refers to the context object (register C)
+                         *   v1 refers to the broadcast receiver instance (register D)
+                         *   v0 refers to the attached intent filter (register E)
+                         *
+                         * Thus, we need to backtrack register D in order to derive the name of the broadcast receiver.
+                         */
 
-                        // backtrack from preceding instruction
+                        // start backtracking from preceding instruction
                         int index = i - 1;
 
-                        backtrackReceiver(instructions, index, invoke.getRegisterD());
+                        // backtrack broadcast receiver instance first
+                        Component receiver = backtrackReceiver(instructions, index, invoke.getRegisterD());
+
+                        if (receiver != null) {
+
+                            // lookup receiver in the list of components and copy derived constants etc.
+                            for (Component component : components) {
+
+                                if (component.getName().equals(receiver.getName())) {
+                                    System.out.println("Found Receiver: " + component);
+                                    receiver = component;
+                                    break;
+                                }
+                            }
+
+                            // backtrack intent filter (inherently adds the filter)
+                            backtrackIntentFilter(receiver, instructions, index, invoke.getRegisterE());
+                        }
 
 
                     } else if (targetMethod.toString().equals("nothing")) {
@@ -103,7 +133,99 @@ public final class DexScanner {
         }
     }
 
-    private void backtrackReceiver(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+    /**
+     * Backtracks for a possible added intent filter to the dynamically added broadcast receiver.
+     *
+     * @param receiver The dynamically registered broadcast receiver.
+     * @param instructions The set of instructions for a given method.
+     * @param currentInstructionIndex The instruction index where to start backtracking from.
+     * @param registerID The register id referring to the intent filter instance specified in registerReceiver().
+     */
+    private void backtrackIntentFilter(Component receiver, List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+
+        Component.IntentFilter intentFilter = receiver.new IntentFilter();
+
+        // unless we haven't reached the first instruction
+        while (currentInstructionIndex >= 0) {
+
+            Instruction instruction = instructions.get(currentInstructionIndex);
+
+            // check for invocations on the intent filter instance
+            if (instruction.getOpcode() == Opcode.INVOKE_VIRTUAL) {
+
+                Instruction35c invoke = (Instruction35c) instruction;
+
+                // TODO: check for calls to add category and data URI
+
+                // check for possible actions
+                if (invoke.getReference().toString()
+                        .equals("Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addAction(Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the action string (register D)
+                     */
+
+                    // check whether we inspect the intent filter object specified in the call registerReceiver()
+                    if (invoke.getRegisterC() == registerID) {
+
+                        // now backtrack again for string constant specifying action (register D)
+                        String action = backtrackAction(instructions, currentInstructionIndex-1, invoke.getRegisterD());
+                        intentFilter.addAction(action);
+                    }
+                }
+            }
+            currentInstructionIndex--;
+        }
+
+        // add intent filter to component
+        receiver.addIntentFilter(intentFilter);
+    }
+
+    /**
+     * Checks for an action string corresponding to the invocation of IntentFilter.addAction().
+     *
+     * @param instructions The set of instructions for a given method.
+     * @param currentInstructionIndex The index where to start backtracking from.
+     * @param registerID The register ID which refers to the register holding the action string.
+     * @return Returns the action string or {@code null} if the action couldn't be derived.
+     */
+    private String backtrackAction(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+
+        // unless we haven't reached the first instruction
+        while (currentInstructionIndex >= 0) {
+
+            Instruction instruction = instructions.get(currentInstructionIndex);
+
+            // actions are typically hold in string constants
+            if (instruction.getOpcode() == Opcode.CONST_STRING) {
+
+                Instruction21c constString = (Instruction21c) instruction;
+
+                // check whether the const string refers to the right register
+                if (constString.getRegisterA() == registerID) {
+                    System.out.println("Found Action: " + constString.getReference());
+                    return constString.getReference().toString();
+                }
+            }
+            currentInstructionIndex--;
+        }
+        return null;
+    }
+
+    /**
+     * Backtracks the broadcast receiver instance for its creation.
+     *
+     * @param instructions The set of instructions of the given method.
+     * @param currentInstructionIndex The instruction index where to start backtracking from.
+     * @param registerID The register id that refers to the register holding the broadcast receiver instance.
+     * @return Returns a {@link BroadcastReceiver} instance or {@code null} if the broadcast receiver
+     *          couldn't be derived.
+     */
+    private Component backtrackReceiver(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
 
         // unless we haven't reached the first instruction
         while (currentInstructionIndex >= 0) {
@@ -121,25 +243,14 @@ public final class DexScanner {
                 // check whether the register id matches the broadcast receiver parameter register id
                 if (newInstance.getRegisterA() == registerID) {
                     System.out.println("Receiver: " + newInstance.getReference());
+                    String componentName = dottedClassName(newInstance.getReference().toString());
+                    Component component = new BroadcastReceiver(componentName);
+                    return component;
                 }
             }
             currentInstructionIndex--;
         }
-
-        /*
-         * A typical call to Context.registerReceiver() looks as follows:
-         *
-         * invoke-virtual {p0, v1, v0}, Landroid/content/Context;->
-         * registerReceiver(Landroid/content/BroadcastReceiver;Landroid/content/IntentFilter;)
-         * Landroid/content/Intent;
-         *
-         * where
-         *   p0 refers to the context object
-         *   v1 refers to the broadcast receiver instance
-         *   v0 refers to the attached intent filter
-         */
-
-
+        return null;
     }
 
     /**

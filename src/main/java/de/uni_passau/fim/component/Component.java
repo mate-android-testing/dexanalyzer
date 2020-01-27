@@ -6,10 +6,16 @@ public abstract class Component {
 
     protected String name;
     protected Set<String> globalStrings;
+    protected List<IntentFilter> intentFilters;
 
     public Component(String name) {
         this.name = name;
         globalStrings = new LinkedHashSet<>();
+        intentFilters = new ArrayList<>();
+    }
+
+    public void addIntentFilter(IntentFilter intentFilter) {
+        intentFilters.add(intentFilter);
     }
 
     public void addStringConstant(String constant) {
@@ -21,16 +27,25 @@ public abstract class Component {
         return name;
     }
 
+    /**
+     * Provides the generic part of a component as XML representation.
+     * 
+     * @return Returns the component's partial XML representation.
+     */
     public String toXml() {
-        StringBuilder output = new StringBuilder("<component name='" + makeXmlConform(name) + "'>\n");
-        output.append(globalToXml());
-        output.append("</component>\n");
-
+        StringBuilder output = new StringBuilder();
+        output.append(intentFiltersToXml());
+        output.append(globalStringsToXml());
         return output.toString();
     }
 
-    protected String globalToXml() {
-        if(!globalStrings.isEmpty()) {
+    /**
+     * Provides the XML representation of the collected global strings.
+     *
+     * @return Returns the XML representation of the global strings.
+     */
+    private String globalStringsToXml() {
+        if (!globalStrings.isEmpty()) {
             StringBuilder output = new StringBuilder();
             output.append("    <global>\n");
             for (String string : globalStrings) {
@@ -40,6 +55,22 @@ public abstract class Component {
             return output.toString();
         }
         return "";
+    }
+
+    /**
+     * Provides the XML representation of the attached intent-filters.
+     *
+     * @return Returns the XML representation of the intent-filters.
+     */
+    private String intentFiltersToXml() {
+
+        StringBuilder output = new StringBuilder();
+
+        for (IntentFilter intentFilter : intentFilters) {
+            output.append(intentFilter.toXml());
+        }
+
+        return output.toString();
     }
 
     public void finalizeMethods() {
@@ -58,5 +89,42 @@ public abstract class Component {
     @Override
     public String toString() {
         return name;
+    }
+
+
+    public class IntentFilter {
+
+        private Set<String> actions = new HashSet<>();
+        private Set<String> categories = new HashSet<>();
+
+        public void addAction(String action) {
+            actions.add(action);
+        }
+
+        public void addCategory(String category) {
+            categories.add(category);
+        }
+
+        /**
+         * Converts an intent-filter to a custom xml representation.
+         *
+         * @return Returns the xml representation of the intent-filter.
+         */
+        public String toXml() {
+
+            StringBuilder output = new StringBuilder();
+            output.append("    <intent-filter>\n");
+
+            for (String action : actions) {
+                output.append("        <action='" + makeXmlConform(action) + "'/>\n");
+            }
+
+            for (String category : categories) {
+                output.append("        <category='" + makeXmlConform(category) + "'/>\n");
+            }
+
+            output.append("    </intent-filter>\n");
+            return output.toString();
+        }
     }
 }

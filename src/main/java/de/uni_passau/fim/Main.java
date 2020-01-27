@@ -73,8 +73,6 @@ public class Main {
         File outputFile = new File(outputDir, "staticIntentInfo.xml");
         PrintStream printStream = new PrintStream(outputFile);
 
-        /*
-
         // write xml header
         printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"
                 + System.lineSeparator());
@@ -85,7 +83,5 @@ public class Main {
         });
 
         printStream.close();
-
-        */
     }
 }
