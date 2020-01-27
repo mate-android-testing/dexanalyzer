@@ -29,7 +29,7 @@ public abstract class Component {
 
     /**
      * Provides the generic part of a component as XML representation.
-     * 
+     *
      * @return Returns the component's partial XML representation.
      */
     public String toXml() {
