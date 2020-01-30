@@ -92,7 +92,11 @@ public final class DexScanner {
                     // check whether Context.registerReceiver() is called
                     if (targetMethod.toString().equals("Landroid/content/Context;->" +
                             "registerReceiver(Landroid/content/BroadcastReceiver;" +
-                            "Landroid/content/IntentFilter;)Landroid/content/Intent;")) {
+                            "Landroid/content/IntentFilter;)Landroid/content/Intent;")
+                            // registerReceiver with additional int flag
+                        || targetMethod.toString().equals("Landroid/content/Context;->" +
+                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;I)Landroid/content/Intent;")) {
 
                         System.out.println("Backtracking required within method: " + method.toString());
 
@@ -136,11 +140,20 @@ public final class DexScanner {
                             backtrackIntentFilter(receiver, instructions, index, invoke.getRegisterE());
                         }
 
+                    // further overloaded registerReceiver() methods
+                    } else if (targetMethod.toString().equals("Landroid/content/Context;->" +
+                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;I)" +
+                            "Landroid/content/Intent;")
+                        || targetMethod.toString().equals("Landroid/content/Context;->" +
+                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)" +
+                            "Landroid/content/Intent;")) {
 
-                    } else if (targetMethod.toString().equals("nothing")) {
-                        // TODO: add missing overloaded registerReceiver() methods
+                        // TODO: it is unclear whether we should handle them or not
+                        System.out.println("Method " + method.toString() + " calls " +
+                                targetMethod.toString() + " at instruction " + i);
                     }
-
                 }
             }
         }
@@ -186,8 +199,62 @@ public final class DexScanner {
                     if (invoke.getRegisterC() == registerID) {
 
                         // now backtrack again for string constant specifying action (register D)
-                        String action = backtrackAction(instructions, currentInstructionIndex-1, invoke.getRegisterD());
-                        intentFilter.addAction(action);
+                        String action = backtrackStringConstant(instructions, currentInstructionIndex-1,
+                                invoke.getRegisterD());
+
+                        if (action != null) {
+                            intentFilter.addAction(action);
+                        }
+                    }
+                    // check for possible categories
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;->addCategory(Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addCategory(Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the category string (register D)
+                     */
+
+                    // check whether we inspect the intent filter object specified in the call registerReceiver()
+                    if (invoke.getRegisterC() == registerID) {
+
+                        // now backtrack again for string constant specifying category (register D)
+                        String category = backtrackStringConstant(instructions, currentInstructionIndex-1,
+                                invoke.getRegisterD());
+
+                        if (category != null) {
+                            intentFilter.addCategory(category);
+                        }
+                    }
+                }
+            } else if (instruction.getOpcode() == Opcode.INVOKE_DIRECT) {
+
+                Instruction35c invoke = (Instruction35c) instruction;
+
+                // check for intent filter constructor with action parameter
+                if (invoke.getReference().toString()
+                        .equals("Landroid/content/IntentFilter;-><init>(Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-direct {v0, v1}, Landroid/content/IntentFilter;-><init>(Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the action string (register D)
+                     */
+
+                    // check whether we inspect the intent filter object specified in the call registerReceiver()
+                    if (invoke.getRegisterD() == registerID) {
+
+                        // now backtrack again for string constant specifying action (register D)
+                        String action = backtrackStringConstant(instructions, currentInstructionIndex-1,
+                                invoke.getRegisterD());
+
+                        if (action != null) {
+                            intentFilter.addAction(action);
+                        }
                     }
                 }
             }
@@ -199,14 +266,15 @@ public final class DexScanner {
     }
 
     /**
-     * Checks for an action string corresponding to the invocation of IntentFilter.addAction().
+     * Checks for an string constant, e.g. an action, corresponding to the invocation of IntentFilter.addAction(),
+     * IntentFilter.addCategory(), etc.
      *
      * @param instructions The set of instructions for a given method.
      * @param currentInstructionIndex The index where to start backtracking from.
-     * @param registerID The register ID which refers to the register holding the action string.
-     * @return Returns the action string or {@code null} if the action couldn't be derived.
+     * @param registerID The register ID which refers to the register holding the string constant.
+     * @return Returns the string constant or {@code null} if the constant couldn't be derived.
      */
-    private String backtrackAction(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+    private String backtrackStringConstant(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
 
         // unless we haven't reached the first instruction
         while (currentInstructionIndex >= 0) {
@@ -220,7 +288,7 @@ public final class DexScanner {
 
                 // check whether the const string refers to the right register
                 if (constString.getRegisterA() == registerID) {
-                    System.out.println("Found Action: " + constString.getReference());
+                    System.out.println("Found String Constant: " + constString.getReference());
                     return constString.getReference().toString();
                 }
             }
