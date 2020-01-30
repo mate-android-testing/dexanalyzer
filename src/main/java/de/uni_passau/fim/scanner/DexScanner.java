@@ -181,7 +181,7 @@ public final class DexScanner {
 
                 Instruction35c invoke = (Instruction35c) instruction;
 
-                // TODO: check for calls to add category and data URI
+                // TODO: check for calls to add data URI
 
                 // check for possible actions
                 if (invoke.getReference().toString()
@@ -228,6 +228,66 @@ public final class DexScanner {
                             intentFilter.addCategory(category);
                         }
                     }
+                    // check for possible data scheme specific part (ssp) + type (int)
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;->addDataSchemeSpecificPart(Ljava/lang/String;I)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1, v3}, Landroid/content/IntentFilter;->addDataSchemeSpecificPart(Ljava/lang/String;I)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the data scheme specific part (string, register D)
+                     *  v3 refers to the type (int, registerE)
+                     */
+
+                    // check for possible data path
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;->addDataPath(Ljava/lang/String;I)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1, v3}, Landroid/content/IntentFilter;->addDataPath(Ljava/lang/String;I)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the data path (string, register D)
+                     *  v3 refers to the type (int, registerE)
+                     */
+
+                    // check for possible data type
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;->addDataType(Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addDataType(Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the data type string (register D)
+                     */
+
+                    // check for possible data authority
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;" +
+                        "->addDataAuthority(Ljava/lang/String;Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1, v2}, Landroid/content/IntentFilter;
+                     *          ->addDataAuthority(Ljava/lang/String;Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the host (string, register D)
+                     *  v2 refers to the port (string, registerE)
+                     */
+
+                    // check for possible data scheme
+                } else if (invoke.getReference().equals("Landroid/content/IntentFilter;->addDataScheme(Ljava/lang/String;)V")) {
+
+                    /*
+                     * A possible invocation looks as follows:
+                     *  invoke-virtual {v0, v1}, Landroid/content/IntentFilter;->addDataScheme(Ljava/lang/String;)V
+                     * where
+                     *  v0 refers to the intent filter instance (register C)
+                     *  v1 refers to the data scheme string (register D)
+                     */
+
                 }
             } else if (instruction.getOpcode() == Opcode.INVOKE_DIRECT) {
 
