@@ -26,6 +26,8 @@ public class Main {
 
     private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
+    private static String packageName;
+
     /**
      * Defines the entry point for the static analysis of an APK.
      *
@@ -35,26 +37,28 @@ public class Main {
     public static void main(String[] args) throws IOException {
 
         if (args.length < 1) {
-            throw new IllegalStateException("No APK file specified!");
+            LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk>. The APK need to" +
+                    "be named after the package name of the app!");
+        } else {
+
+            // we assume that the name of the APK corresponds to the package name of the app
+            File apkFile = new File(args[0]);
+            packageName = apkFile.getName().replace(".apk", "");
+            LOGGER.debug("Package Name: " + packageName);
+
+            DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
+                    new BasicDexFileNamer(), null, null);
+
+            // scan dex files for the relevant static data
+            DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
+
+            // create the output directory for the static data if not present yet in the respective app folder
+            File staticDataDir = new File(apkFile.getParentFile(),
+                    packageName + File.separator + "static_data");
+            staticDataDir.mkdirs();
+
+            generateStaticIntentInfo(dexScanner, staticDataDir);
         }
-
-        // we assume that the name of the APK corresponds to the package name of the app
-        File apkFile = new File(args[0]);
-        String packageName = apkFile.getName().replace(".apk", "");
-        LOGGER.debug("Package Name: " + packageName);
-
-        DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
-                new BasicDexFileNamer(), null, null);
-
-        // scan dex files for the relevant static data
-        DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
-
-        // create the output directory for the static data if not present yet in the respective app folder
-        File staticDataDir = new File(apkFile.getParentFile(),
-                packageName + File.separator + "static_data");
-        staticDataDir.mkdirs();
-
-        generateStaticIntentInfo(dexScanner, staticDataDir);
     }
 
     /**
@@ -67,7 +71,7 @@ public class Main {
     private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
         // look up components
-        List<Component> components = dexScanner.lookUpComponents();
+        List<Component> components = dexScanner.lookUpComponents(packageName);
 
         LOGGER.debug("Components: ");
         for (Component component : components) {

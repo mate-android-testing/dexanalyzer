@@ -405,13 +405,12 @@ public final class DexScanner {
      *
      * @return Returns the list of retrieved components.
      */
-    public List<Component> lookUpComponents() {
+    public List<Component> lookUpComponents(final String packageName) {
 
         // exclude certain classes from inspection, e.g. ART classes
         Pattern exclusionPattern = Utility.readExcludePatterns();
 
         List<Component> components = new ArrayList<>();
-        Map<String, Map<String, String>> allVariables = new HashMap<>();
 
         for (DexFile dexFile : dexFiles) {
 
@@ -419,9 +418,11 @@ public final class DexScanner {
 
             for (ClassDef classDef : classes) {
 
-                // skip ART classes
                 String className = ClassUtils.dottedClassName(classDef.toString());
-                if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
+
+                // skip classes that are belonging to the app package
+                if ((exclusionPattern != null && exclusionPattern.matcher(className).matches())
+                        || !className.startsWith(packageName)) {
                     continue;
                 }
 
