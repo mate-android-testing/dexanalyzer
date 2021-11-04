@@ -42,6 +42,9 @@ dependencies {
         // mdexlib2 still uses dexlib2 2.3.4 but latest version is 2.5.2
         exclude group: 'org.smali', module: 'dexlib2'
     }
+
+    // https://mvnrepository.com/artifact/com.google.guava/guava
+    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
 }
 
 task customFatJar(type: Jar) {
