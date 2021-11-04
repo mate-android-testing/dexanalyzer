@@ -1,5 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.utility;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jf.dexlib2.iface.ClassDef;
 
 import java.io.BufferedReader;
@@ -11,7 +13,9 @@ import java.util.regex.Pattern;
 
 public final class Utility {
 
-    public static final String EXCLUSION_PATTERN_FILE = "exclude.txt";
+    private static final Logger LOGGER = LogManager.getLogger(Utility.class);
+
+    private static final String EXCLUSION_PATTERN_FILE = "exclude.txt";
 
     private Utility() {
         throw new UnsupportedOperationException("Utility class can't be instantiated!");
@@ -28,7 +32,7 @@ public final class Utility {
         InputStream inputStream = classLoader.getResourceAsStream(EXCLUSION_PATTERN_FILE);
 
         if (inputStream == null) {
-            System.out.println("Couldn't find exlcusion file!");
+            LOGGER.warn("Couldn't find exclusion pattern file!");
             return null;
         }
 
@@ -47,7 +51,7 @@ public final class Utility {
             }
             reader.close();
         } catch (IOException e) {
-            System.out.println("Couldn't read from exclusion file!");
+            LOGGER.warn("Couldn't read from exclusion file!");
             e.printStackTrace();
             return null;
         }

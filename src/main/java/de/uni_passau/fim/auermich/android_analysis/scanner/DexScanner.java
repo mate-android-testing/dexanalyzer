@@ -7,6 +7,8 @@ import de.uni_passau.fim.auermich.android_analysis.component.Component;
 import de.uni_passau.fim.auermich.android_analysis.component.Service;
 import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -25,6 +27,8 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public final class DexScanner {
+
+    private static final Logger LOGGER = LogManager.getLogger(DexScanner.class);
 
     // the classes.dex files
     private final List<DexFile> dexFiles;
@@ -98,7 +102,7 @@ public final class DexScanner {
                             "registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;I)Landroid/content/Intent;")) {
 
-                        System.out.println("Backtracking required within method: " + method.toString());
+                        LOGGER.debug("Backtracking required within method: " + method);
 
                         /*
                          * A typical call to Context.registerReceiver() looks as follows:
@@ -127,7 +131,7 @@ public final class DexScanner {
                             for (Component component : components) {
 
                                 if (component.getName().equals(receiver.getName())) {
-                                    System.out.println("Found Receiver: " + component);
+                                    LOGGER.debug("Found Receiver: " + component);
                                     receiver = component;
                                     break;
                                 }
@@ -151,8 +155,7 @@ public final class DexScanner {
                             "Landroid/content/Intent;")) {
 
                         // TODO: it is unclear whether we should handle them or not
-                        System.out.println("Method " + method.toString() + " calls " +
-                                targetMethod.toString() + " at instruction " + i);
+                        LOGGER.debug("Method " + method + " calls " + targetMethod + " at instruction " + i);
                     }
                 }
             }
@@ -348,7 +351,7 @@ public final class DexScanner {
 
                 // check whether the const string refers to the right register
                 if (constString.getRegisterA() == registerID) {
-                    System.out.println("Found String Constant: " + constString.getReference());
+                    LOGGER.debug("Found String Constant: " + constString.getReference());
                     return constString.getReference().toString();
                 }
             }
@@ -379,11 +382,11 @@ public final class DexScanner {
             if (instruction.getOpcode() == Opcode.NEW_INSTANCE) {
 
                 Instruction21c newInstance = (Instruction21c) instruction;
-                System.out.println("Register A: " + newInstance.getRegisterA());
+                LOGGER.debug("Register A: " + newInstance.getRegisterA());
 
                 // check whether the register id matches the broadcast receiver parameter register id
                 if (newInstance.getRegisterA() == registerID) {
-                    System.out.println("Receiver: " + newInstance.getReference());
+                    LOGGER.debug("Receiver: " + newInstance.getReference());
                     String componentName = Utility.dottedClassName(newInstance.getReference().toString());
                     Component component = new BroadcastReceiver(componentName);
                     return component;
@@ -686,7 +689,6 @@ public final class DexScanner {
      */
     private String convertExtraType(String extraType) {
 
-        // System.out.println("Original Type: " + extraType);
         String convertedType = extraType;
 
         if (extraType.endsWith("ArrayList")) {
@@ -694,7 +696,7 @@ public final class DexScanner {
         } else if (extraType.endsWith("Array")) {
             convertedType = extraType.replace("Array", "[]");
         }
-        // System.out.println("Converted Type: " + convertedType);
+
         return convertedType;
     }
 

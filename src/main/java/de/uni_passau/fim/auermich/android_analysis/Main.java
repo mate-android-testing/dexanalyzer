@@ -4,6 +4,8 @@ import de.uni_passau.fim.auermich.android_analysis.component.Component;
 import de.uni_passau.fim.auermich.android_analysis.scanner.DexScanner;
 import lanchon.multidexlib2.BasicDexFileNamer;
 import lanchon.multidexlib2.MultiDexIO;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.jf.dexlib2.iface.DexFile;
 
 import java.io.File;
@@ -21,6 +23,8 @@ import java.util.List;
  */
 public class Main {
 
+    private static final Logger LOGGER = LogManager.getLogger(Main.class);
+
     /**
      * Defines the entry point for the static analysis of an APK.
      *
@@ -36,7 +40,7 @@ public class Main {
         // we assume that the name of the APK corresponds to the package name of the app
         File apkFile = new File(args[0]);
         String packageName = apkFile.getName().replace(".apk", "");
-        System.out.println("Package Name: " + packageName);
+        LOGGER.debug("Package Name: " + packageName);
 
         DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
                 new BasicDexFileNamer(), null, null);
@@ -45,8 +49,9 @@ public class Main {
         DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
         List<Component> components = dexScanner.lookUpComponents();
 
+        LOGGER.debug("Components: ");
         for (Component component : components) {
-            System.out.println(component);
+            LOGGER.debug(component);
         }
 
         // look up for dynamically registered broadcast receivers
@@ -66,7 +71,7 @@ public class Main {
 
         components.forEach(component -> {
             printStream.print(component.toXml());
-            System.out.print(component.toXml());
+            LOGGER.debug(component.toXml());
         });
 
         printStream.close();
