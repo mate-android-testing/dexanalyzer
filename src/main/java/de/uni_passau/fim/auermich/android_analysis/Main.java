@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import org.jf.dexlib2.iface.DexFile;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.List;
@@ -45,8 +46,27 @@ public class Main {
         DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
                 new BasicDexFileNamer(), null, null);
 
-        // scan dex files for components
+        // scan dex files for the relevant static data
         DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
+
+        // create the output directory for the static data if not present yet in the respective app folder
+        File staticDataDir = new File(apkFile.getParentFile(),
+                packageName + File.separator + "static_data");
+        staticDataDir.mkdirs();
+
+        generateStaticIntentInfo(dexScanner, staticDataDir);
+    }
+
+    /**
+     * Generates the staticIntentInfo.xml file necessary for the ExecuteMATERandomExplorationIntent strategy.
+     *
+     * @param dexScanner Scans the dex files for the static data.
+     * @param staticDataDir The directory where the staticIntentInfo.xml file should be stored.
+     * @throws FileNotFoundException Should never happen.
+     */
+    private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
+
+        // look up components
         List<Component> components = dexScanner.lookUpComponents();
 
         LOGGER.debug("Components: ");
@@ -57,12 +77,7 @@ public class Main {
         // look up for dynamically registered broadcast receivers
         dexScanner.lookUpDynamicBroadcastReceivers(components);
 
-        // write out collected information as xml in same dir as APK
-        File outputDir = new File(apkFile.getParentFile(),
-                packageName + File.separator + "static_data");
-        outputDir.mkdirs();
-
-        File outputFile = new File(outputDir, "staticIntentInfo.xml");
+        File outputFile = new File(staticDataDir, "staticIntentInfo.xml");
         PrintStream printStream = new PrintStream(outputFile);
 
         // write xml header
