@@ -5,6 +5,8 @@ import de.uni_passau.fim.auermich.android_analysis.component.Activity;
 import de.uni_passau.fim.auermich.android_analysis.component.BroadcastReceiver;
 import de.uni_passau.fim.auermich.android_analysis.component.Component;
 import de.uni_passau.fim.auermich.android_analysis.component.Service;
+import de.uni_passau.fim.auermich.android_analysis.utility.ClassUtils;
+import de.uni_passau.fim.auermich.android_analysis.utility.ComponentUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 import org.apache.logging.log4j.LogManager;
@@ -63,7 +65,7 @@ public final class DexScanner {
             for (ClassDef classDef : classes) {
 
                 // skip ART classes
-                String className = Utility.dottedClassName(classDef.toString());
+                String className = ClassUtils.dottedClassName(classDef.toString());
                 if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
                     continue;
                 }
@@ -387,7 +389,7 @@ public final class DexScanner {
                 // check whether the register id matches the broadcast receiver parameter register id
                 if (newInstance.getRegisterA() == registerID) {
                     LOGGER.debug("Receiver: " + newInstance.getReference());
-                    String componentName = Utility.dottedClassName(newInstance.getReference().toString());
+                    String componentName = ClassUtils.dottedClassName(newInstance.getReference().toString());
                     Component component = new BroadcastReceiver(componentName);
                     return component;
                 }
@@ -418,7 +420,7 @@ public final class DexScanner {
             for (ClassDef classDef : classes) {
 
                 // skip ART classes
-                String className = Utility.dottedClassName(classDef.toString());
+                String className = ClassUtils.dottedClassName(classDef.toString());
                 if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
                     continue;
                 }
@@ -1013,18 +1015,17 @@ public final class DexScanner {
      */
     private Component findComponent(List<ClassDef> classes, ClassDef currentClass) {
 
-        String className = Utility.dottedClassName(currentClass.toString());
+        String className = ClassUtils.dottedClassName(currentClass.toString());
 
-        if (Utility.isActivity(classes, currentClass)) {
+        if (ComponentUtils.isActivity(classes, currentClass)) {
             return new Activity(className);
-        } else if (Utility.isService(classes, currentClass)) {
+        } else if (ComponentUtils.isService(classes, currentClass)) {
             return new Service(className);
-        } else if (Utility.isBroadcastReceiver(classes, currentClass)) {
+        } else if (ComponentUtils.isBroadcastReceiver(classes, currentClass)) {
             return new BroadcastReceiver(className);
         } else {
             return null;
         }
     }
-
 
 }
