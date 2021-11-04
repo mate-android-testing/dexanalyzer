@@ -1,4 +1,4 @@
-package de.uni_passau.fim.utility;
+package de.uni_passau.fim.auermich.android_analysis.utility;
 
 import org.jf.dexlib2.iface.ClassDef;
 

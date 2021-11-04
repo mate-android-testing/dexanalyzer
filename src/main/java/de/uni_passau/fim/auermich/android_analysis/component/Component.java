@@ -1,4 +1,4 @@
-package de.uni_passau.fim.component;
+package de.uni_passau.fim.auermich.android_analysis.component;
 
 import java.util.*;
 

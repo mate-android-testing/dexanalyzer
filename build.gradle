@@ -1,29 +1,69 @@
 plugins {
     id 'java'
+    id 'idea'
 }
-
-// version '1.0-SNAPSHOT'
-
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
 }
 
-jar {
-    manifest {
-        attributes "Main-Class": "de.uni_passau.fim.Main"
-    }
-    
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+group 'de.uni-passau.fim.auermich.android-analysis'
+// version '1.0-SNAPSHOT'
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << "-Xlint:deprecation"
+    options.encoding = "UTF-8"
+}
+
+tasks.withType(Javadoc) {
+    options.encoding = "UTF-8"
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
 
-    compile group: 'org.smali', name: 'dexlib2', version: '2.3.4'
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.7.1")
 
-    compile fileTree(dir: 'libs', include: '*.jar')
+    // https://mvnrepository.com/artifact/org.smali/dexlib2
+    implementation group: 'org.smali', name: 'dexlib2', version: '2.5.2'
+
+    implementation(group: 'com.github.lanchon.dexpatcher', name: 'multidexlib2', version: '2.3.4') {
+        // mdexlib2 still uses dexlib2 2.3.4 but latest version is 2.5.2
+        exclude group: 'org.smali', module: 'dexlib2'
+    }
+}
+
+task customFatJar(type: Jar) {
+
+    manifest {
+        attributes "Main-Class": "de.uni_passau.fim.auermich.android_analysis.Main"
+    }
+
+    archiveName(rootProject.name + '.jar')
+
+    from {
+        (configurations.compile.findAll { !it.path.endsWith(".pom") }).collect {
+            it.isDirectory() ? it : zipTree(it) }
+
+        (configurations.runtimeClasspath.findAll { !it.path.endsWith(".pom") }).collect {
+            it.isDirectory() ? it : zipTree(it) }
+    }
+
+    with jar
+}
+
+test {
+    useJUnitPlatform()
+}
+
+idea {
+    module {
+        downloadJavadoc = true
+        downloadSources = true
+    }
 }

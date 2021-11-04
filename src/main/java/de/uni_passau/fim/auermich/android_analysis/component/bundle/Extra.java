@@ -1,4 +1,4 @@
-package de.uni_passau.fim.component.bundle;
+package de.uni_passau.fim.auermich.android_analysis.component.bundle;
 
 public class Extra {
 

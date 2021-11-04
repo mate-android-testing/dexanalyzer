@@ -1,7 +1,6 @@
-package de.uni_passau.fim.component;
+package de.uni_passau.fim.auermich.android_analysis.component;
 
-import de.uni_passau.fim.component.bundle.Extra;
-import org.jf.dexlib2.iface.Method;
+import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 
 import java.util.*;
 

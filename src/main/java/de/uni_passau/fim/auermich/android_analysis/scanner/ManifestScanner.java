@@ -1,10 +1,10 @@
-package de.uni_passau.fim.scanner;
+package de.uni_passau.fim.auermich.android_analysis.scanner;
 
-import de.uni_passau.fim.Main;
-import de.uni_passau.fim.component.Activity;
-import de.uni_passau.fim.component.BroadcastReceiver;
-import de.uni_passau.fim.component.Component;
-import de.uni_passau.fim.component.Service;
+import de.uni_passau.fim.auermich.android_analysis.Main;
+import de.uni_passau.fim.auermich.android_analysis.component.Activity;
+import de.uni_passau.fim.auermich.android_analysis.component.BroadcastReceiver;
+import de.uni_passau.fim.auermich.android_analysis.component.Component;
+import de.uni_passau.fim.auermich.android_analysis.component.Service;
 import org.xml.sax.*;
 import org.xml.sax.helpers.XMLReaderFactory;
 

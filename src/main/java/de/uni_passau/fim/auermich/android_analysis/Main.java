@@ -1,16 +1,14 @@
-package de.uni_passau.fim;
+package de.uni_passau.fim.auermich.android_analysis;
 
-import de.uni_passau.fim.component.Component;
-import de.uni_passau.fim.scanner.DexScanner;
-import de.uni_passau.fim.scanner.ManifestScanner;
-import org.jf.dexlib2.DexFileFactory;
-import org.jf.dexlib2.Opcodes;
-import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import de.uni_passau.fim.auermich.android_analysis.component.Component;
+import de.uni_passau.fim.auermich.android_analysis.scanner.DexScanner;
+import lanchon.multidexlib2.BasicDexFileNamer;
+import lanchon.multidexlib2.MultiDexIO;
 import org.jf.dexlib2.iface.DexFile;
-import org.jf.dexlib2.iface.MultiDexContainer;
 
-import java.io.*;
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.util.List;
 
 /**
@@ -23,13 +21,13 @@ import java.util.List;
  */
 public class Main {
 
-    private static final Opcodes API_OPCODE = Opcodes.forApi(28);
-
+    /**
+     * Defines the entry point for the static analysis of an APK.
+     *
+     * @param args The command line arguments. The first argument must refer to the path of the APK.
+     * @throws IOException Should never happen.
+     */
     public static void main(String[] args) throws IOException {
-
-        // File apkFile = new File("/home/auermich/smali/ws.xsoh.etar_17.apk");
-        // File apkFile = new File("/home/auermich/tools/mate-commander/BMI-debug.apk");
-        // File apkFile = new File("C:\\Users\\Michael\\git\\mate-commander\\ws.xsoh.etar_17.apk");
 
         if (args.length < 1) {
             throw new IllegalStateException("No APK file specified!");
@@ -40,22 +38,11 @@ public class Main {
         String packageName = apkFile.getName().replace(".apk", "");
         System.out.println("Package Name: " + packageName);
 
-        MultiDexContainer<? extends DexBackedDexFile> apk
-                = DexFileFactory.loadDexContainer(apkFile, API_OPCODE);
-
-        List<DexFile> dexFiles = new ArrayList<>();
-
-        apk.getDexEntryNames().forEach(dexFile -> {
-            try {
-                dexFiles.add(apk.getEntry(dexFile).getDexFile());
-            } catch (IOException e) {
-                e.printStackTrace();
-                throw new IllegalStateException("Couldn't load dex file!");
-            }
-        });
+        DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
+                new BasicDexFileNamer(), null, null);
 
         // scan dex files for components
-        DexScanner dexScanner = new DexScanner(dexFiles, apkFile.getPath());
+        DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
         List<Component> components = dexScanner.lookUpComponents();
 
         for (Component component : components) {
