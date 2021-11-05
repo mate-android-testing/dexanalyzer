@@ -439,9 +439,10 @@ public final class DexScanner {
      * package.
      *
      * @param packageName The application package name.
+     * @param resolveAllClasses Whether all classes should be resolved or not.
      * @return Returns the list of retrieved components.
      */
-    public List<Component> lookUpComponents(final String packageName) {
+    public List<Component> lookUpComponents(final String packageName, final boolean resolveAllClasses) {
 
         // exclude certain classes from inspection, e.g. ART classes
         Pattern exclusionPattern = Utility.readExcludePatterns();
@@ -458,7 +459,7 @@ public final class DexScanner {
 
                 // skip classes that are belonging to the app package
                 if ((exclusionPattern != null && exclusionPattern.matcher(className).matches())
-                        || !className.startsWith(packageName)) {
+                        || (!resolveAllClasses && !className.startsWith(packageName))) {
                     continue;
                 }
 

@@ -26,25 +26,44 @@ public class Main {
 
     private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
+    /**
+     * The package name of the application.
+     */
     private static String packageName;
+
+    /**
+     * Whether all classes should be resolved or only those being part of the application package.
+     * By default, only classes belonging to the application package are resolved.
+     */
+    private static boolean resolveAllClasses = false;
 
     /**
      * Defines the entry point for the static analysis of an APK.
      *
      * @param args The command line arguments. The first argument must refer to the path of the APK.
+     *             The second argument (optional) --rac || --resolve-all-classes denotes whether all classes should
+     *             be resolved or not.
      * @throws IOException Should never happen.
      */
     public static void main(String[] args) throws IOException {
 
         if (args.length < 1) {
-            LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk>. The APK need to" +
-                    "be named after the package name of the app!");
+            LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk> --resolve-all-classes (OPTIONAL). " +
+                    "The APK need to be named after the package name of the app!");
         } else {
 
             // we assume that the name of the APK corresponds to the package name of the app
             File apkFile = new File(args[0]);
             packageName = apkFile.getName().replace(".apk", "");
             LOGGER.debug("Package Name: " + packageName);
+
+            if (args.length == 2) {
+                String argument = args[1];
+                if (argument.equals("--rac") || argument.equals("--resolve-all-classes")) {
+                    LOGGER.debug("Resolving all classes!");
+                    resolveAllClasses = true;
+                }
+            }
 
             DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
                     new BasicDexFileNamer(), null, null);
@@ -71,7 +90,7 @@ public class Main {
     private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
         // look up components
-        List<Component> components = dexScanner.lookUpComponents(packageName);
+        List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
 
         LOGGER.debug("Components: ");
         for (Component component : components) {
