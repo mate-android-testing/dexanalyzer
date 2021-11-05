@@ -11,7 +11,7 @@ import java.util.Set;
 /**
  * Provides utility functions to check whether a class represents an android component, e.g. an activity class.
  */
-public class ComponentUtils {
+public final class ComponentUtils {
 
     private static final Logger LOGGER = LogManager.getLogger(ComponentUtils.class);
 
@@ -54,6 +54,10 @@ public class ComponentUtils {
         add("Landroid/content/BroadcastReceiver;");
         add("Landroid/appwidget/AppWidgetProvider;");
     }};
+
+    private ComponentUtils() {
+        throw new UnsupportedOperationException("Utility class can't be instantiated!");
+    }
 
     /**
      * Checks whether the given class represents an activity by checking against the super class.

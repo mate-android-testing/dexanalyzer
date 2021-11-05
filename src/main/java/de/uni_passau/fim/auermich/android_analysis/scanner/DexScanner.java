@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import de.uni_passau.fim.auermich.android_analysis.component.*;
 import de.uni_passau.fim.auermich.android_analysis.utility.ClassUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.ComponentUtils;
+import de.uni_passau.fim.auermich.android_analysis.utility.MethodUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 import org.apache.logging.log4j.LogManager;
@@ -25,6 +26,9 @@ import org.jf.dexlib2.iface.value.StringEncodedValue;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * Scans the dex files for the relevant information.
+ */
 public final class DexScanner {
 
     private static final Logger LOGGER = LogManager.getLogger(DexScanner.class);
@@ -52,6 +56,11 @@ public final class DexScanner {
         this.apkPath = apkPath;
     }
 
+    /**
+     * Look ups dynamic broadcast receivers.
+     *
+     * @param components The list of components.
+     */
     public void lookUpDynamicBroadcastReceivers(List<Component> components) {
 
         Pattern exclusionPattern = Utility.readExcludePatterns();
@@ -74,6 +83,12 @@ public final class DexScanner {
         }
     }
 
+    /**
+     * Scans the given method for a dynamic broadcast receiver registration invocation.
+     *
+     * @param components The list of components.
+     * @param method The method to be inspected.
+     */
     private void scanMethodForDynamicBroadcastReceiver(List<Component> components, Method method) {
 
         MethodImplementation implementation = method.getImplementation();
@@ -101,7 +116,7 @@ public final class DexScanner {
                             "registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;I)Landroid/content/Intent;")) {
 
-                        LOGGER.debug("Backtracking required within method: " + method);
+                        LOGGER.debug("Backtracking dynamic broadcast receiver registration in method: " + method);
 
                         /*
                          * A typical call to Context.registerReceiver() looks as follows:
@@ -351,7 +366,7 @@ public final class DexScanner {
     }
 
     /**
-     * Backtracks the broadcast receiver instance for its creation.
+     * Backtracks the broadcast receiver to its instance creation.
      *
      * @param components The list of components.
      * @param instructions The set of instructions of the given method.
@@ -492,89 +507,6 @@ public final class DexScanner {
     }
 
     /**
-     * Searches for a target method in the given {@code dexFile}.
-     *
-     * @param dexFiles        The dexFiles to search in.
-     * @param methodSignature The signature of the target method.
-     * @return Returns an optional containing either the target method or not.
-     */
-    private Optional<Method> searchForTargetMethod(List<DexFile> dexFiles, String methodSignature) {
-
-        // TODO: search for target method based on className + method signature
-        String className = methodSignature.split("->")[0];
-
-        for (DexFile dexFile : dexFiles) {
-
-            Set<? extends ClassDef> classes = dexFile.getClasses();
-
-            // search for target method
-            for (ClassDef classDef : classes) {
-                if (classDef.toString().equals(className)) {
-                    for (Method method : classDef.getMethods()) {
-                        if (deriveMethodSignature(method).equals(methodSignature)) {
-                            return Optional.of(method);
-                        }
-                    }
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Searches for a target class in the given {@code dexFiles}.
-     *
-     * @param dexFiles  The dexFiles to search in.
-     * @param className The name of the target class.
-     * @return Returns an optional containing either the target class or not.
-     */
-    private Optional<ClassDef> searchForTargetClass(List<DexFile> dexFiles, String className) {
-
-        for (DexFile dexFile : dexFiles) {
-
-            Set<? extends ClassDef> classes = dexFile.getClasses();
-
-            // search for target method
-            for (ClassDef classDef : classes) {
-                if (classDef.toString().equals(className)) {
-                    return Optional.of(classDef);
-                }
-            }
-        }
-        return Optional.empty();
-    }
-
-    /**
-     * Derives a unique method signature in order to avoid
-     * name clashes originating from overloaded/inherited methods
-     * or methods in different classes.
-     *
-     * @param method The method to derive its method signature.
-     * @return Returns the method signature of the given {@param method}.
-     */
-    private String deriveMethodSignature(Method method) {
-
-        String className = method.getDefiningClass();
-        String methodName = method.getName();
-        List<? extends MethodParameter> parameters = method.getParameters();
-        String returnType = method.getReturnType();
-
-        StringBuilder builder = new StringBuilder();
-        builder.append(className);
-        builder.append("->");
-        builder.append(methodName);
-        builder.append("(");
-
-        for (MethodParameter param : parameters) {
-            builder.append(param.getType());
-        }
-
-        builder.append(")");
-        builder.append(returnType);
-        return builder.toString();
-    }
-
-    /**
      * Looks up each constructor in a given class for variable assignments. Returns
      * a map containing for each variable its initial value.
      *
@@ -628,8 +560,8 @@ public final class DexScanner {
 
                         String methodSignature = invoke.getReference().toString();
                         String className = methodSignature.split("->")[0];
-                        Optional<Method> targetMethod = searchForTargetMethod(dexFiles, methodSignature);
-                        Optional<ClassDef> targetClass = searchForTargetClass(dexFiles, className);
+                        Optional<Method> targetMethod = MethodUtils.searchForTargetMethod(dexFiles, methodSignature);
+                        Optional<ClassDef> targetClass = ClassUtils.searchForTargetClass(dexFiles, className);
 
                         if (targetMethod.isPresent() && targetClass.isPresent()) {
 
@@ -1023,12 +955,12 @@ public final class DexScanner {
 
 
     /**
-     * Checks whether the given class represents an activity, a service or a broadcast receiver.
+     * Checks whether the given class represents an activity, a service, a broadcast receiver or a fragment.
      *
      * @param classes      The set of classes.
      * @param currentClass The current class.
-     * @return Returns the corresponding {@link Component} or {@code null} if the
-     * current class doesn't represent an activity, a service or a broadcast receiver.
+     * @return Returns the corresponding {@link Component} or {@code null} if the current class doesn't represent
+     * an activity, a service or a broadcast receiver.
      */
     private Component findComponent(List<ClassDef> classes, ClassDef currentClass) {
 
