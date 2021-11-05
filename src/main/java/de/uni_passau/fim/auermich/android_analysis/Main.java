@@ -78,6 +78,9 @@ public class Main {
             LOGGER.debug(component);
         }
 
+        // extract the intent data
+        dexScanner.extractIntentInfo(components);
+
         // look up for dynamically registered broadcast receivers
         dexScanner.lookUpDynamicBroadcastReceivers(components);
 

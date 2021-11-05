@@ -398,9 +398,47 @@ public final class DexScanner {
     }
 
     /**
-     * Scans the dex files of an APK for components and retrieves information, e.g. string constants, for
-     * each component.
+     * Extracts the relevant data, e.g. string constants, for the ExecuteMATERandomExplorationIntent strategy.
+     * Only considers data from activities, services and broadcast receivers.
      *
+     * @param components The list of components.
+     */
+    public void extractIntentInfo(List<Component> components) {
+
+        for (Component component : components) {
+
+            if (component instanceof Fragment) {
+                // we are not interested in fragments
+                continue;
+            }
+
+            ClassDef classDef = component.getClazz();
+            Map<String, String> classVariables = new HashMap<>();
+
+            // look up the constructor(s) for variable assignments
+            for (Method method : classDef.getMethods()) {
+                if (method.getName().equals("<init>") || method.getName().equals("<clinit>")) {
+                    classVariables.putAll(lookupConstructor(method));
+                }
+            }
+
+            variables.put(classDef, classVariables);
+
+            // lookup the classes' fields for string constants
+            lookupStringConstants(component, classDef);
+
+            // scan each method
+            for (Method method : classDef.getMethods()) {
+                scanMethod(component, method, classVariables);
+            }
+        }
+    }
+
+    /**
+     * Extracts the components, i.e. activities, services, fragments and broadcast receivers, residing in application
+     * package.
+     *
+     * @param packageName The application package name.
      * @return Returns the list of retrieved components.
      */
     public List<Component> lookUpComponents(final String packageName) {
@@ -427,28 +465,7 @@ public final class DexScanner {
                 Component component = findComponent(classes, classDef);
 
                 if (component != null) {
-                    // we deal with an activity, a service or a broadcast receiver
-
                     components.add(component);
-
-                    Map<String, String> classVariables = new HashMap<>();
-
-                    // look up the constructor(s) for variable assignments
-                    for (Method method : classDef.getMethods()) {
-                        if (method.getName().equals("<init>") || method.getName().equals("<clinit>")) {
-                            classVariables.putAll(lookupConstructor(method));
-                        }
-                    }
-
-                    variables.put(classDef, classVariables);
-
-                    // lookup the classes' fields for string constants
-                    lookupStringConstants(component, classDef);
-
-                    // scan each method
-                    for (Method method : classDef.getMethods()) {
-                        scanMethod(component, method, classVariables);
-                    }
                 }
             }
         }

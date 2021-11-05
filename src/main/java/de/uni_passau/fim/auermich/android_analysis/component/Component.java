@@ -7,10 +7,10 @@ import java.util.*;
 
 public abstract class Component {
 
-    protected ClassDef clazz;
-    protected String name;
-    protected Set<String> globalStrings;
-    protected List<IntentFilter> intentFilters;
+    protected final ClassDef clazz;
+    protected final String name;
+    protected final Set<String> globalStrings;
+    protected final List<IntentFilter> intentFilters;
 
     public Component(ClassDef clazz) {
         this.clazz = clazz;
@@ -28,6 +28,20 @@ public abstract class Component {
         globalStrings.add(constant);
     }
 
+    /**
+     * Returns the class definition representing the component.
+     *
+     * @return Returns the class definition.
+     */
+    public ClassDef getClazz() {
+        return clazz;
+    }
+
+    /**
+     * Returns the transformed (dotted) class name.
+     *
+     * @return Returns the name of the component.
+     */
     public String getName() {
         return name;
     }
