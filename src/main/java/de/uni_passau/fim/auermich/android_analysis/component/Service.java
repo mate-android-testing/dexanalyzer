@@ -1,6 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.component;
 
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
+import org.jf.dexlib2.iface.ClassDef;
 
 import java.util.*;
 
@@ -12,8 +13,8 @@ public class Service extends Component{
     private List<Extra> onHandleIntentExtras;
     private Set<String> onHandleIntentStrings;
 
-    public Service(String name) {
-        super(name);
+    public Service(ClassDef clazz) {
+        super(clazz);
         onStartCommandExtras = new ArrayList<>();
         onStartCommandStrings = new LinkedHashSet<>();
         onHandleIntentExtras = new ArrayList<>();

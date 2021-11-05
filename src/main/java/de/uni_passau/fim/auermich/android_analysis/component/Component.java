@@ -1,15 +1,20 @@
 package de.uni_passau.fim.auermich.android_analysis.component;
 
+import de.uni_passau.fim.auermich.android_analysis.utility.ClassUtils;
+import org.jf.dexlib2.iface.ClassDef;
+
 import java.util.*;
 
 public abstract class Component {
 
+    protected ClassDef clazz;
     protected String name;
     protected Set<String> globalStrings;
     protected List<IntentFilter> intentFilters;
 
-    public Component(String name) {
-        this.name = name;
+    public Component(ClassDef clazz) {
+        this.clazz = clazz;
+        this.name = ClassUtils.dottedClassName(clazz.toString());
         globalStrings = new LinkedHashSet<>();
         intentFilters = new ArrayList<>();
     }

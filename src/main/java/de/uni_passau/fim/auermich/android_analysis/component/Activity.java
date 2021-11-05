@@ -1,6 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.component;
 
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
+import org.jf.dexlib2.iface.ClassDef;
 
 import java.util.*;
 
@@ -12,8 +13,8 @@ public class Activity extends Component {
     private List<Extra> onCreateExtras;
     private Set<String> onCreateStrings;
 
-    public Activity(String name) {
-        super(name);
+    public Activity(ClassDef clazz) {
+        super(clazz);
         onNewIntentExtras = new ArrayList<>();
         onNewIntentStrings = new LinkedHashSet<>();
         onCreateExtras = new ArrayList<>();

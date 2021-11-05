@@ -1,10 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.scanner;
 
 import com.google.common.collect.Lists;
-import de.uni_passau.fim.auermich.android_analysis.component.Activity;
-import de.uni_passau.fim.auermich.android_analysis.component.BroadcastReceiver;
-import de.uni_passau.fim.auermich.android_analysis.component.Component;
-import de.uni_passau.fim.auermich.android_analysis.component.Service;
+import de.uni_passau.fim.auermich.android_analysis.component.*;
 import de.uni_passau.fim.auermich.android_analysis.utility.ClassUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.ComponentUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
@@ -125,19 +122,10 @@ public final class DexScanner {
                         int index = i - 1;
 
                         // backtrack broadcast receiver instance first
-                        Component receiver = backtrackReceiver(instructions, index, invoke.getRegisterD());
+                        Component receiver = backtrackReceiver(components, instructions,
+                                index, invoke.getRegisterD());
 
                         if (receiver != null) {
-
-                            // lookup receiver in the list of components and copy derived constants etc.
-                            for (Component component : components) {
-
-                                if (component.getName().equals(receiver.getName())) {
-                                    LOGGER.debug("Found Receiver: " + component);
-                                    receiver = component;
-                                    break;
-                                }
-                            }
 
                             // mark receiver as dynamic one
                             ((BroadcastReceiver) receiver).markAsDynamicReceiver();
@@ -365,13 +353,15 @@ public final class DexScanner {
     /**
      * Backtracks the broadcast receiver instance for its creation.
      *
+     * @param components The list of components.
      * @param instructions The set of instructions of the given method.
      * @param currentInstructionIndex The instruction index where to start backtracking from.
      * @param registerID The register id that refers to the register holding the broadcast receiver instance.
      * @return Returns a {@link BroadcastReceiver} instance or {@code null} if the broadcast receiver
      *          couldn't be derived.
      */
-    private Component backtrackReceiver(List<Instruction> instructions, int currentInstructionIndex, int registerID) {
+    private Component backtrackReceiver(List<Component> components, List<Instruction> instructions,
+                                        int currentInstructionIndex, int registerID) {
 
         // unless we haven't reached the first instruction
         while (currentInstructionIndex >= 0) {
@@ -389,9 +379,17 @@ public final class DexScanner {
                 // check whether the register id matches the broadcast receiver parameter register id
                 if (newInstance.getRegisterA() == registerID) {
                     LOGGER.debug("Receiver: " + newInstance.getReference());
-                    String componentName = ClassUtils.dottedClassName(newInstance.getReference().toString());
-                    Component component = new BroadcastReceiver(componentName);
-                    return component;
+
+                    String receiverName = ClassUtils.dottedClassName(newInstance.getReference().toString());
+
+                    // lookup receiver in the list of components and copy derived constants etc.
+                    for (Component component : components) {
+
+                        if (component.getName().equals(receiverName)) {
+                            LOGGER.debug("Found Receiver: " + component);
+                            return component;
+                        }
+                    }
                 }
             }
             currentInstructionIndex--;
@@ -1016,14 +1014,14 @@ public final class DexScanner {
      */
     private Component findComponent(List<ClassDef> classes, ClassDef currentClass) {
 
-        String className = ClassUtils.dottedClassName(currentClass.toString());
-
         if (ComponentUtils.isActivity(classes, currentClass)) {
-            return new Activity(className);
+            return new Activity(currentClass);
         } else if (ComponentUtils.isService(classes, currentClass)) {
-            return new Service(className);
+            return new Service(currentClass);
         } else if (ComponentUtils.isBroadcastReceiver(classes, currentClass)) {
-            return new BroadcastReceiver(className);
+            return new BroadcastReceiver(currentClass);
+        } else if (ComponentUtils.isFragment(classes, currentClass)) {
+            return new Fragment(currentClass);
         } else {
             return null;
         }

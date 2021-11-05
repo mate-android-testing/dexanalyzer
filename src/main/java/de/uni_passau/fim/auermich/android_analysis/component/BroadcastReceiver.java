@@ -1,6 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.component;
 
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
+import org.jf.dexlib2.iface.ClassDef;
 
 import java.util.*;
 
@@ -11,8 +12,8 @@ public class BroadcastReceiver extends Component {
 
     private boolean isDynamicReceiver = false;
 
-    public BroadcastReceiver(String name) {
-        super(name);
+    public BroadcastReceiver(ClassDef clazz) {
+        super(clazz);
         onReceiveExtras = new ArrayList<>();
         onReceiveStrings = new LinkedHashSet<>();
     }
