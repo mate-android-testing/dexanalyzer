@@ -7,4 +7,9 @@ public class Fragment extends Component {
     public Fragment(ClassDef clazz) {
         super(clazz);
     }
+
+    @Override
+    protected String getType() {
+        return "fragment";
+    }
 }

@@ -47,6 +47,11 @@ public class Service extends Component{
         return output.toString();
     }
 
+    @Override
+    protected String getType() {
+        return "service";
+    }
+
     private String onStartCommandToXml() {
         finalizeOnStartCommand();
         if(!onStartCommandExtras.isEmpty() || !onStartCommandStrings.isEmpty()) {

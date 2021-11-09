@@ -1,5 +1,6 @@
 package de.uni_passau.fim.auermich.android_analysis;
 
+import de.uni_passau.fim.auermich.android_analysis.component.Activity;
 import de.uni_passau.fim.auermich.android_analysis.component.Component;
 import de.uni_passau.fim.auermich.android_analysis.scanner.DexScanner;
 import lanchon.multidexlib2.BasicDexFileNamer;
@@ -77,6 +78,7 @@ public class Main {
             staticDataDir.mkdirs();
 
             generateStaticIntentInfo(dexScanner, staticDataDir);
+            generateStaticStringExtraction(dexScanner,staticDataDir);
         }
     }
 
@@ -117,4 +119,43 @@ public class Main {
 
         printStream.close();
     }
+
+    /**
+     * Generates the staticIntentInfo.xml file necessary for the ExecuteMATERandomExplorationIntent strategy.
+     *
+     * @param dexScanner Scans the dex files for the static data.
+     * @param staticDataDir The directory where the staticIntentInfo.xml file should be stored.
+     * @throws FileNotFoundException Should never happen.
+     */
+    private static void generateStaticStringExtraction(DexScanner dexScanner,
+                                        File staticDataDir) throws FileNotFoundException {
+
+        // look up components
+        List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
+
+        LOGGER.debug("Components: ");
+        for (Component component : components) {
+            LOGGER.debug(component);
+        }
+
+        dexScanner.extractStringConsts(components);
+
+        // look up for dynamically registered broadcast receivers
+        dexScanner.lookUpDynamicBroadcastReceivers(components);
+
+        File outputFile = new File(staticDataDir, "allStrings.xml");
+        PrintStream printStream = new PrintStream(outputFile);
+
+        // write xml header
+        printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"
+                + System.lineSeparator());
+
+        components.forEach(component -> {
+            printStream.print(component.allStringsToXml());
+            LOGGER.debug(component.allStringsToXml());
+        });
+
+        printStream.close();
+    }
+
 }

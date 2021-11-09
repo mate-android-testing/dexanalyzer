@@ -47,6 +47,11 @@ public class Activity extends Component {
         return output.toString();
     }
 
+    @Override
+    protected String getType() {
+        return "activity";
+    }
+
     private String onNewIntentToXml() {
         finalizeOnNewIntent();
         if(!onNewIntentExtras.isEmpty() || !onNewIntentStrings.isEmpty()) {

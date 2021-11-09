@@ -9,8 +9,11 @@ public abstract class Component {
 
     protected final ClassDef clazz;
     protected final String name;
+
     protected final Set<String> globalStrings;
     protected final List<IntentFilter> intentFilters;
+
+    private final Set<String> allStrings = new HashSet<>();
 
     public Component(ClassDef clazz) {
         this.clazz = clazz;
@@ -68,9 +71,35 @@ public abstract class Component {
             StringBuilder output = new StringBuilder();
             output.append("    <global>\n");
             for (String string : globalStrings) {
-                output.append("        <string value='" + makeXmlConform(string) + "'/>\n");
+                output.append("        <string value='" + makeXmlConform(string)
+                        + "'/>\n");
             }
             output.append("    </global>\n");
+            return output.toString();
+        }
+        return "";
+    }
+
+    protected abstract String getType();
+
+
+
+    public String allStringsToXml() {
+        if (!allStrings.isEmpty()) {
+            String className =
+                    getClazz().toString().replaceFirst("L","").replace(";","");
+
+            StringBuilder output = new StringBuilder();
+            output.append("<allstrings class='")
+                    .append(className)
+                    .append("' type = '")
+                    .append(getType())
+                    .append("'/>\n");
+            for (String string : allStrings) {
+                output.append("    <string value='")
+                        .append(makeXmlConform(string)).append("'/>\n");
+            }
+            output.append("</allstrings>\n");
             return output.toString();
         }
         return "";
@@ -135,15 +164,26 @@ public abstract class Component {
             output.append("    <intent-filter>\n");
 
             for (String action : actions) {
-                output.append("        <action name='" + makeXmlConform(action) + "'/>\n");
+                output.append("        <action name='" + makeXmlConform(action)
+                        + "'/>\n");
             }
 
             for (String category : categories) {
-                output.append("        <category name='" + makeXmlConform(category) + "'/>\n");
+                output.append(
+                        "        <category name='" + makeXmlConform(category)
+                                + "'/>\n");
             }
 
             output.append("    </intent-filter>\n");
             return output.toString();
         }
+    }
+
+    public Set<String> getGlobalStrings() {
+        return globalStrings;
+    }
+
+    public void addAll(Set<String> strings) {
+        allStrings.addAll(strings);
     }
 }

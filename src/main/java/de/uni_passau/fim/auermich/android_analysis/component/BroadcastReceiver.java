@@ -43,6 +43,11 @@ public class BroadcastReceiver extends Component {
         return output.toString();
     }
 
+    @Override
+    protected String getType() {
+        return "broadcastReceiver";
+    }
+
     private String onReceiveToXml() {
         finalizeOnReceive();
         if(!onReceiveExtras.isEmpty() || !onReceiveStrings.isEmpty()) {
