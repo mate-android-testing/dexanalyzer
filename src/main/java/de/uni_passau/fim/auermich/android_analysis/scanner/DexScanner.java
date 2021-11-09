@@ -20,15 +20,7 @@ import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
 import org.jf.dexlib2.iface.reference.StringReference;
-import org.jf.dexlib2.iface.value.BooleanEncodedValue;
-import org.jf.dexlib2.iface.value.ByteEncodedValue;
-import org.jf.dexlib2.iface.value.CharEncodedValue;
-import org.jf.dexlib2.iface.value.DoubleEncodedValue;
 import org.jf.dexlib2.iface.value.EncodedValue;
-import org.jf.dexlib2.iface.value.FloatEncodedValue;
-import org.jf.dexlib2.iface.value.IntEncodedValue;
-import org.jf.dexlib2.iface.value.LongEncodedValue;
-import org.jf.dexlib2.iface.value.ShortEncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
 
 import java.util.*;
@@ -52,7 +44,6 @@ public final class DexScanner {
 
     // all strings that are getting collected during scanning
     private Set<String> strings = new HashSet<>();
-
 
 
     /**
@@ -482,22 +473,31 @@ public final class DexScanner {
      *
      * @param components The list of components.
      */
-    public void extractIntentInfo(List<Component> components){
-        extractInfos(components,true);
+    public void extractIntentInfo(List<Component> components) {
+        extractInfos(components, true);
     }
 
 
-    private void extractInfos(List<Component> components,
-                             boolean intentInfo) {
+    /**
+     * Extracts the relevant data, e.g. string constants, for the
+     * ExecuteMATERandomExplorationIntent strategy. Only considers data from
+     * activities, services and broadcast receivers.
+     *
+     * @param components The list of components.
+     * @param intentInfo Indicates if intentInfo or all static strings should be
+     *                   considered.
+     */
+    private void extractInfos(List<Component> components, boolean intentInfo) {
 
         for (Component component : components) {
-            if(intentInfo) {
+            if (intentInfo) {
                 if (component instanceof Fragment) {
                     // we are not interested in fragments
                     continue;
                 }
-            } else{
-                if(component instanceof Service || component instanceof BroadcastReceiver){
+            } else {
+                if (component instanceof Service
+                        || component instanceof BroadcastReceiver) {
                     // we only want to have string constants in Fragment or
                     // Activity
                     continue;
@@ -518,38 +518,48 @@ public final class DexScanner {
 
             // lookup the classes' fields for string constants
             lookupStringConstants(component, classDef);
-            if(intentInfo) {
+            if (intentInfo) {
                 // scan each method
                 for (Method method : classDef.getMethods()) {
                     scanMethod(component, method, classVariables);
                 }
-            } else{
+            } else {
                 for (Method method : classDef.getMethods()) {
-                    if(component instanceof Activity){
+                    if (component instanceof Activity) {
                         scanComponentMethod(method, classVariables,
-                                ((Activity) component).getOnCreateStrings(),
+                                ((Activity) component).getMethodStrings(),
                                 ((Activity) component).getOnCreateExtras());
+                        continue;
+                    }
+                    if (component instanceof Fragment) {
+                        scanComponentMethod(method, classVariables,
+                                ((Fragment) component).getMethodStrings(),
+                                ((Fragment) component).getOnCreateExtras());
                     }
                 }
             }
         }
     }
 
-    public void extractStringConsts(List<Component> components){
-        extractInfos(components,false);
-        for(Component com : components){
-            if(com instanceof Activity){
-             com.addAll( ((Activity) com).getOnCreateStrings());
-             com.addAll(com.getGlobalStrings());
+    /**
+     * Extract all static string constants of the code in activity or fragment
+     * classes. All methods are considered.
+     *
+     * @param components All existing components.
+     */
+    public void extractStringConsts(List<Component> components) {
+        extractInfos(components, false);
+        for (Component com : components) {
+            if (com instanceof Activity) {
+                com.addAll(((Activity) com).getMethodStrings());
+                com.addAll(com.getGlobalStrings());
             }
-            if(com instanceof Fragment){
-            //    allStrings.addAll( ((Fragment) com).getOnCreateStrings());
+            if (com instanceof Fragment) {
+                com.addAll(((Fragment) com).getMethodStrings());
                 com.addAll(com.getGlobalStrings());
             }
         }
     }
-
-
 
 
     /**
@@ -1133,81 +1143,6 @@ public final class DexScanner {
             }
         }
     }
-
-    private void lookupConstants(Component component, ClassDef classDef) {
-
-        // search through all instance and static fields
-        for (Field field : classDef.getFields()) {
-            EncodedValue encodedValue = field.getInitialValue();
-            String value = getStringValue(encodedValue);
-
-            if (value != null && !value.equals("null") && !value
-                    .isEmpty()) {
-                component.addStringConstant(value);
-                strings.add(value);
-            }
-        }
-    }
-
-    private String getStringValue(EncodedValue eValue) {
-        if (eValue instanceof StringEncodedValue) {
-            return ((StringEncodedValue) eValue).getValue();
-        }
-        if (eValue instanceof IntEncodedValue) {
-            return String.valueOf(((IntEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof BooleanEncodedValue) {
-            return String
-                    .valueOf(((BooleanEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof FloatEncodedValue) {
-            return String.valueOf(((FloatEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof ByteEncodedValue) {
-            return String.valueOf(((ByteEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof ShortEncodedValue) {
-            return String.valueOf(((ShortEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof CharEncodedValue) {
-            return String.valueOf(((CharEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof LongEncodedValue) {
-            return String.valueOf(((LongEncodedValue) eValue).getValue());
-        }
-        if (eValue instanceof DoubleEncodedValue) {
-            return String.valueOf(((DoubleEncodedValue) eValue).getValue());
-        }
-        return null;
-    }
-
-    /**
-     * Looks up all fields in a given class for string constants.
-     *
-     * @param classDef The class file.
-     */
-    private Set<String> lookupStringConstants(ClassDef classDef) {
-
-        Set<String> stringConstants = new HashSet<>();
-
-        // search through all instance and static fields
-        for (Field field : classDef.getFields()) {
-
-            EncodedValue encodedValue = field.getInitialValue();
-
-            if (encodedValue instanceof StringEncodedValue) {
-
-                String value =
-                        ((StringEncodedValue) encodedValue).getValue();
-
-                if (!value.isEmpty()) {
-                    stringConstants.add(value);
-                }
-            }
-        }
-        return stringConstants;
-    }
-
 
     /**
      * Checks whether the given class represents an activity, a service, a

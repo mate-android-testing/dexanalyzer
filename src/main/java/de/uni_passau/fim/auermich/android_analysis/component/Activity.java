@@ -12,6 +12,7 @@ public class Activity extends Component {
 
     private List<Extra> onCreateExtras;
     private Set<String> onCreateStrings;
+    private Set<String> getMethodStrings;
 
     public Activity(ClassDef clazz) {
         super(clazz);
@@ -19,6 +20,7 @@ public class Activity extends Component {
         onNewIntentStrings = new LinkedHashSet<>();
         onCreateExtras = new ArrayList<>();
         onCreateStrings = new LinkedHashSet<>();
+        getMethodStrings = new HashSet<>();
     }
 
     public List<Extra> getOnNewIntentExtras() {
@@ -33,8 +35,11 @@ public class Activity extends Component {
         return onCreateExtras;
     }
 
-    public Set<String> getOnCreateStrings() {
+    public Set<String> getOnCreateStrings(){
         return onCreateStrings;
+    }
+    public Set<String> getMethodStrings() {
+        return getMethodStrings;
     }
 
     public String toXml() {
@@ -47,6 +52,9 @@ public class Activity extends Component {
         return output.toString();
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String getType() {
         return "activity";

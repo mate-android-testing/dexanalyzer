@@ -42,7 +42,9 @@ public class BroadcastReceiver extends Component {
 
         return output.toString();
     }
-
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected String getType() {
         return "broadcastReceiver";

@@ -62,6 +62,13 @@ public abstract class Component {
     }
 
     /**
+     * Gets the type of a component. (Is needed for type in xml file)
+     *
+     * @return The type of a component.
+     */
+    protected abstract String getType();
+
+    /**
      * Provides the XML representation of the collected global strings.
      *
      * @return Returns the XML representation of the global strings.
@@ -80,14 +87,18 @@ public abstract class Component {
         return "";
     }
 
-    protected abstract String getType();
-
-
-
+    /**
+     * Takes all static strings a component has and introduced them into a xml
+     * valid structure.
+     *
+     * @return The xml structure of all static strings. The file contains the
+     * type and the class of the component.
+     */
     public String allStringsToXml() {
         if (!allStrings.isEmpty()) {
             String className =
-                    getClazz().toString().replaceFirst("L","").replace(";","");
+                    getClazz().toString().replaceFirst("L", "")
+                            .replace(";", "");
 
             StringBuilder output = new StringBuilder();
             output.append("<allstrings class='")
@@ -183,6 +194,11 @@ public abstract class Component {
         return globalStrings;
     }
 
+    /**
+     * Adds a set of string to the {@code allStrings} Set.
+     *
+     * @param strings The set to be added.
+     */
     public void addAll(Set<String> strings) {
         allStrings.addAll(strings);
     }

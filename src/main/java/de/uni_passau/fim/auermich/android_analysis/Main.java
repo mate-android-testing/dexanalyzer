@@ -1,6 +1,5 @@
 package de.uni_passau.fim.auermich.android_analysis;
 
-import de.uni_passau.fim.auermich.android_analysis.component.Activity;
 import de.uni_passau.fim.auermich.android_analysis.component.Component;
 import de.uni_passau.fim.auermich.android_analysis.scanner.DexScanner;
 import lanchon.multidexlib2.BasicDexFileNamer;
@@ -77,8 +76,8 @@ public class Main {
                     packageName + File.separator + "static_data");
             staticDataDir.mkdirs();
 
+            generateStaticStrings(dexScanner,staticDataDir);
             generateStaticIntentInfo(dexScanner, staticDataDir);
-            generateStaticStringExtraction(dexScanner,staticDataDir);
         }
     }
 
@@ -121,28 +120,21 @@ public class Main {
     }
 
     /**
-     * Generates the staticIntentInfo.xml file necessary for the ExecuteMATERandomExplorationIntent strategy.
+     * Generates the allStrings.xml file which contains all static strings in
+     * an apk.
      *
-     * @param dexScanner Scans the dex files for the static data.
-     * @param staticDataDir The directory where the staticIntentInfo.xml file should be stored.
+     * @param dexScanner Scans the dex files for the static string data.
+     * @param staticDataDir The directory where the allStrings.xml file should
+     *                     be stored.
      * @throws FileNotFoundException Should never happen.
      */
-    private static void generateStaticStringExtraction(DexScanner dexScanner,
-                                        File staticDataDir) throws FileNotFoundException {
+    private static void generateStaticStrings(DexScanner dexScanner,
+                                              File staticDataDir) throws FileNotFoundException {
 
         // look up components
         List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
 
-        LOGGER.debug("Components: ");
-        for (Component component : components) {
-            LOGGER.debug(component);
-        }
-
         dexScanner.extractStringConsts(components);
-
-        // look up for dynamically registered broadcast receivers
-        dexScanner.lookUpDynamicBroadcastReceivers(components);
-
         File outputFile = new File(staticDataDir, "allStrings.xml");
         PrintStream printStream = new PrintStream(outputFile);
 
@@ -154,7 +146,6 @@ public class Main {
             printStream.print(component.allStringsToXml());
             LOGGER.debug(component.allStringsToXml());
         });
-
         printStream.close();
     }
 
