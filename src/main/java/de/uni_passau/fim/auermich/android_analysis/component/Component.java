@@ -105,7 +105,7 @@ public abstract class Component {
                     .append(className)
                     .append("' type = '")
                     .append(getType())
-                    .append("'/>\n");
+                    .append("'>\n");
             for (String string : allStrings) {
                 output.append("    <string value='")
                         .append(makeXmlConform(string)).append("'/>\n");
