@@ -175,6 +175,7 @@ public final class DexScanner {
      */
     private void backtrackIntentFilter(Component receiver, List<Instruction> instructions, int currentInstructionIndex, int registerID) {
 
+        // TODO: support backtracking of multiple actions and multiple intent filters
         Component.IntentFilter intentFilter = receiver.new IntentFilter();
 
         // unless we haven't reached the first instruction
@@ -312,7 +313,7 @@ public final class DexScanner {
                      */
 
                     // check whether we inspect the intent filter object specified in the call registerReceiver()
-                    if (invoke.getRegisterD() == registerID) {
+                    if (invoke.getRegisterC() == registerID) {
 
                         // now backtrack again for string constant specifying action (register D)
                         String action = backtrackStringConstant(instructions, currentInstructionIndex-1,
