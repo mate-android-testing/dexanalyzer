@@ -108,15 +108,15 @@ public final class DexScanner {
                     Reference targetMethod = invoke.getReference();
 
                     // check whether Context.registerReceiver() is called
-                    if (targetMethod.toString().equals("Landroid/content/Context;->" +
-                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                    if (targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;)Landroid/content/Intent;")
                             // registerReceiver with additional int flag
-                        || targetMethod.toString().equals("Landroid/content/Context;->" +
-                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                        || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;I)Landroid/content/Intent;")) {
 
                         LOGGER.debug("Backtracking dynamic broadcast receiver registration in method: " + method);
+
+                        // TODO: handle dynamic receivers that are stored in a class variable
 
                         /*
                          * A typical call to Context.registerReceiver() looks as follows:
@@ -150,12 +150,10 @@ public final class DexScanner {
                         }
 
                     // further overloaded registerReceiver() methods
-                    } else if (targetMethod.toString().equals("Landroid/content/Context;->" +
-                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                    } else if (targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;I)" +
                             "Landroid/content/Intent;")
-                        || targetMethod.toString().equals("Landroid/content/Context;->" +
-                            "registerReceiver(Landroid/content/BroadcastReceiver;" +
+                        || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)" +
                             "Landroid/content/Intent;")) {
 
