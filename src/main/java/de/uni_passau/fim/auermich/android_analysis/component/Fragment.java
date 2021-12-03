@@ -17,7 +17,6 @@ public class Fragment extends Component {
         methodStrings = new HashSet<>();
     }
 
-
     /**
      * {@inheritDoc}
      */

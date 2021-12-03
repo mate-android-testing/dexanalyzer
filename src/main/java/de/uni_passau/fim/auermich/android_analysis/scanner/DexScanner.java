@@ -413,7 +413,7 @@ public final class DexScanner {
      * @param components The list of components.
      */
     public void extractIntentInfo(List<Component> components) {
-        extractInfos(components, true);
+        extractInfo(components, true);
     }
 
     /**
@@ -425,7 +425,7 @@ public final class DexScanner {
      * @param intentInfo Indicates if intentInfo or all static strings should be
      *                   considered.
      */
-    private void extractInfos(List<Component> components, boolean intentInfo) {
+    private void extractInfo(List<Component> components, boolean intentInfo) {
 
         for (Component component : components) {
             if (intentInfo) {
@@ -485,15 +485,15 @@ public final class DexScanner {
      *
      * @param components All existing components.
      */
-    public void extractStringConsts(List<Component> components) {
-        extractInfos(components, false);
+    public void extractStringConstants(List<Component> components) {
+        extractInfo(components, false);
         for (Component com : components) {
             if (com instanceof Activity) {
-                com.addAll(((Activity) com).getMethodStrings());
-                com.addAll(com.getGlobalStrings());
+                com.addStaticStrings(((Activity) com).getMethodStrings());
+                com.addStaticStrings(com.getGlobalStrings());
             } else if (com instanceof Fragment) {
-                com.addAll(((Fragment) com).getMethodStrings());
-                com.addAll(com.getGlobalStrings());
+                com.addStaticStrings(((Fragment) com).getMethodStrings());
+                com.addStaticStrings(com.getGlobalStrings());
             }
         }
     }

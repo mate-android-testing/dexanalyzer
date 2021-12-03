@@ -89,7 +89,6 @@ public class Main {
      */
     private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
-        // look up components
         List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
 
         LOGGER.debug("Components: ");
@@ -119,19 +118,18 @@ public class Main {
     }
 
     /**
-     * Generates the allStrings.xml file which contains all static strings in an apk.
+     * Generates the staticStrings.xml file which contains all static strings of an APK.
      *
      * @param dexScanner Scans the dex files for the static string data.
-     * @param staticDataDir The directory where the allStrings.xml file should be stored.
+     * @param staticDataDir The directory where the staticStrings.xml file should be stored.
      * @throws FileNotFoundException Should never happen.
      */
     private static void generateStaticStrings(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
-        // look up components
         List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
 
-        dexScanner.extractStringConsts(components);
-        File outputFile = new File(staticDataDir, "allStrings.xml");
+        dexScanner.extractStringConstants(components);
+        File outputFile = new File(staticDataDir, "staticStrings.xml");
         PrintStream printStream = new PrintStream(outputFile);
 
         // write xml header
@@ -139,8 +137,8 @@ public class Main {
                 + System.lineSeparator());
 
         components.forEach(component -> {
-            printStream.print(component.allStringsToXml());
-            LOGGER.debug(component.allStringsToXml());
+            printStream.print(component.staticStringsToXml());
+            LOGGER.debug(component.staticStringsToXml());
         });
         printStream.close();
     }

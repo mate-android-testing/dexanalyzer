@@ -13,7 +13,7 @@ public abstract class Component {
     protected final Set<String> globalStrings;
     protected final List<IntentFilter> intentFilters;
 
-    private final Set<String> allStrings = new HashSet<>();
+    private final Set<String> staticStrings = new HashSet<>();
 
     public Component(ClassDef clazz) {
         this.clazz = clazz;
@@ -88,25 +88,23 @@ public abstract class Component {
     }
 
     /**
-     * Takes all static strings a component has and introduced them into a xml
-     * valid structure.
+     * Converts the collected static strings of a component and converts them to a valid XML representation.
      *
-     * @return The xml structure of all static strings. The file contains the
-     * type and the class of the component.
+     * @return Returns a XML representation of the collected static strings per component.
      */
-    public String allStringsToXml() {
-        if (!allStrings.isEmpty()) {
+    public String staticStringsToXml() {
+        if (!staticStrings.isEmpty()) {
             StringBuilder output = new StringBuilder();
-            output.append("<allstrings class='")
+            output.append("<strings class='")
                     .append(name)
                     .append("' type='")
                     .append(getType())
                     .append("'>\n");
-            for (String string : allStrings) {
+            for (String string : staticStrings) {
                 output.append("    <string value='")
                         .append(makeXmlConform(string)).append("'/>\n");
             }
-            output.append("</allstrings>\n");
+            output.append("</strings>\n");
             return output.toString();
         } else {
             return "";
@@ -196,7 +194,7 @@ public abstract class Component {
      *
      * @param strings The set to be added.
      */
-    public void addAll(Set<String> strings) {
-        allStrings.addAll(strings);
+    public void addStaticStrings(Set<String> strings) {
+        staticStrings.addAll(strings);
     }
 }
