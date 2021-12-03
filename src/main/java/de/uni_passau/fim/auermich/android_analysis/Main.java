@@ -72,8 +72,7 @@ public class Main {
             DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
 
             // create the output directory for the static data if not present yet in the respective app folder
-            File staticDataDir = new File(apkFile.getParentFile(),
-                    packageName + File.separator + "static_data");
+            File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");
             staticDataDir.mkdirs();
 
             generateStaticStrings(dexScanner,staticDataDir);
@@ -120,16 +119,13 @@ public class Main {
     }
 
     /**
-     * Generates the allStrings.xml file which contains all static strings in
-     * an apk.
+     * Generates the allStrings.xml file which contains all static strings in an apk.
      *
      * @param dexScanner Scans the dex files for the static string data.
-     * @param staticDataDir The directory where the allStrings.xml file should
-     *                     be stored.
+     * @param staticDataDir The directory where the allStrings.xml file should be stored.
      * @throws FileNotFoundException Should never happen.
      */
-    private static void generateStaticStrings(DexScanner dexScanner,
-                                              File staticDataDir) throws FileNotFoundException {
+    private static void generateStaticStrings(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
         // look up components
         List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);

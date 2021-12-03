@@ -9,7 +9,7 @@ import java.util.Set;
 
 public class Fragment extends Component {
 
-    private Set<String> methodStrings;
+    private final Set<String> methodStrings;
     private List<Extra> onCreateExtras;
 
     public Fragment(ClassDef clazz) {

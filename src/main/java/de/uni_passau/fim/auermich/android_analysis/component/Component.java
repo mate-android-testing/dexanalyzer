@@ -153,8 +153,8 @@ public abstract class Component {
 
     public class IntentFilter {
 
-        private Set<String> actions = new HashSet<>();
-        private Set<String> categories = new HashSet<>();
+        private final Set<String> actions = new HashSet<>();
+        private final Set<String> categories = new HashSet<>();
 
         public void addAction(String action) {
             actions.add(action);

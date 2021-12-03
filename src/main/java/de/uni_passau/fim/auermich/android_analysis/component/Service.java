@@ -7,11 +7,11 @@ import java.util.*;
 
 public class Service extends Component{
 
-    private List<Extra> onStartCommandExtras;
-    private Set<String> onStartCommandStrings;
+    private final List<Extra> onStartCommandExtras;
+    private final Set<String> onStartCommandStrings;
 
-    private List<Extra> onHandleIntentExtras;
-    private Set<String> onHandleIntentStrings;
+    private final List<Extra> onHandleIntentExtras;
+    private final Set<String> onHandleIntentStrings;
 
     public Service(ClassDef clazz) {
         super(clazz);
@@ -64,7 +64,8 @@ public class Service extends Component{
                 output.append("        <string value=\"" + makeXmlConform(string) + "\"/>\n");
             }
             for(int i = 0; i < onStartCommandExtras.size(); i++) {
-                output.append("        <extra key=\"" + makeXmlConform(onStartCommandExtras.get(i).getKey()) + "\" type=\"" + makeXmlConform(onStartCommandExtras.get(i).getValueType()) + "\"/>\n");
+                output.append("        <extra key=\"" + makeXmlConform(onStartCommandExtras.get(i).getKey())
+                        + "\" type=\"" + makeXmlConform(onStartCommandExtras.get(i).getValueType()) + "\"/>\n");
             }
             output.append("    </on_start_command>\n");
             return output.toString();
@@ -81,7 +82,8 @@ public class Service extends Component{
                 output.append("        <string value=\"" + makeXmlConform(string) + "\"/>\n");
             }
             for(int i = 0; i < onHandleIntentExtras.size(); i++) {
-                output.append("        <extra key=\"" + makeXmlConform(onHandleIntentExtras.get(i).getKey()) + "\" type=\"" + makeXmlConform(onHandleIntentExtras.get(i).getValueType()) + "\"/>\n");
+                output.append("        <extra key=\"" + makeXmlConform(onHandleIntentExtras.get(i).getKey())
+                        + "\" type=\"" + makeXmlConform(onHandleIntentExtras.get(i).getValueType()) + "\"/>\n");
             }
             output.append("    </on_handle_intent>\n");
             return output.toString();
@@ -105,15 +107,15 @@ public class Service extends Component{
                 }
             }
 
-            Iterator oscsIt = onStartCommandStrings.iterator();
+            Iterator<String> oscsIt = onStartCommandStrings.iterator();
             while(oscsIt.hasNext()) {
-                String string = (String)oscsIt.next();
+                String string = oscsIt.next();
                 if(onStartCommandExtras.get(i).getKey().equals(string))
                     oscsIt.remove();
             }
-            Iterator it = globalStrings.iterator();
+            Iterator<String> it = globalStrings.iterator();
             while (it.hasNext()) {
-                String string = (String)it.next();
+                String string = it.next();
                 if(onStartCommandExtras.get(i).getKey().equals(string))
                     it.remove();
             }
@@ -131,15 +133,15 @@ public class Service extends Component{
                 }
             }
 
-            Iterator hisIt = onHandleIntentStrings.iterator();
+            Iterator<String> hisIt = onHandleIntentStrings.iterator();
             while(hisIt.hasNext()) {
-                String string = (String)hisIt.next();
+                String string = hisIt.next();
                 if(onHandleIntentExtras.get(i).getKey().equals(string))
                     hisIt.remove();
             }
-            Iterator it = globalStrings.iterator();
+            Iterator<String> it = globalStrings.iterator();
             while (it.hasNext()) {
-                String string = (String)it.next();
+                String string = it.next();
                 if(onHandleIntentExtras.get(i).getKey().equals(string))
                     it.remove();
             }

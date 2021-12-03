@@ -7,12 +7,12 @@ import java.util.*;
 
 public class Activity extends Component {
 
-    private List<Extra> onNewIntentExtras;
-    private Set<String> onNewIntentStrings;
+    private final List<Extra> onNewIntentExtras;
+    private final Set<String> onNewIntentStrings;
 
-    private List<Extra> onCreateExtras;
-    private Set<String> onCreateStrings;
-    private Set<String> getMethodStrings;
+    private final List<Extra> onCreateExtras;
+    private final Set<String> onCreateStrings;
+    private final Set<String> getMethodStrings;
 
     public Activity(ClassDef clazz) {
         super(clazz);
@@ -69,7 +69,8 @@ public class Activity extends Component {
                 output.append("        <string value=\"" + makeXmlConform(string) + "\"/>\n");
             }
             for(int i = 0; i < onNewIntentExtras.size(); i++) {
-                output.append("        <extra key=\"" + makeXmlConform(onNewIntentExtras.get(i).getKey()) + "\" type=\"" + makeXmlConform(onNewIntentExtras.get(i).getValueType()) + "\"/>\n");
+                output.append("        <extra key=\"" + makeXmlConform(onNewIntentExtras.get(i).getKey())
+                        + "\" type=\"" + makeXmlConform(onNewIntentExtras.get(i).getValueType()) + "\"/>\n");
             }
             output.append("    </on_new_intent>\n");
             return output.toString();
@@ -86,7 +87,8 @@ public class Activity extends Component {
                 output.append("        <string value=\"" + makeXmlConform(string) + "\"/>\n");
             }
             for(int i = 0; i < onCreateExtras.size(); i++) {
-                output.append("        <extra key=\"" + makeXmlConform(onCreateExtras.get(i).getKey()) + "\" type=\"" + makeXmlConform(onCreateExtras.get(i).getValueType()) + "\"/>\n");
+                output.append("        <extra key=\"" + makeXmlConform(onCreateExtras.get(i).getKey()) + "\" type=\""
+                        + makeXmlConform(onCreateExtras.get(i).getValueType()) + "\"/>\n");
             }
             output.append("    </on_create>\n");
             return output.toString();
@@ -136,15 +138,15 @@ public class Activity extends Component {
                 }
             }
 
-            Iterator ocIt = onCreateStrings.iterator();
+            Iterator<String> ocIt = onCreateStrings.iterator();
             while(ocIt.hasNext()) {
-                String string = (String)ocIt.next();
+                String string = ocIt.next();
                 if(onCreateExtras.get(i).getKey().equals(string))
                     ocIt.remove();
             }
-            Iterator it = globalStrings.iterator();
+            Iterator<String> it = globalStrings.iterator();
             while (it.hasNext()) {
-                String string = (String)it.next();
+                String string = it.next();
                 if(onCreateExtras.get(i).getKey().equals(string))
                     it.remove();
             }
