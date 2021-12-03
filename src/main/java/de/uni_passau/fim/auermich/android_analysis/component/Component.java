@@ -96,14 +96,10 @@ public abstract class Component {
      */
     public String allStringsToXml() {
         if (!allStrings.isEmpty()) {
-            String className =
-                    getClazz().toString().replaceFirst("L", "")
-                            .replace(";", "");
-
             StringBuilder output = new StringBuilder();
             output.append("<allstrings class='")
-                    .append(className)
-                    .append("' type = '")
+                    .append(name)
+                    .append("' type='")
                     .append(getType())
                     .append("'>\n");
             for (String string : allStrings) {
@@ -112,8 +108,9 @@ public abstract class Component {
             }
             output.append("</allstrings>\n");
             return output.toString();
+        } else {
+            return "";
         }
-        return "";
     }
 
     /**

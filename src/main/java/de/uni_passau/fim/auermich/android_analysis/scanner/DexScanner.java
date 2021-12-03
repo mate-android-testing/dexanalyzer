@@ -416,7 +416,6 @@ public final class DexScanner {
         extractInfos(components, true);
     }
 
-
     /**
      * Extracts the relevant data, e.g. string constants, for the
      * ExecuteMATERandomExplorationIntent strategy. Only considers data from
@@ -482,8 +481,7 @@ public final class DexScanner {
     }
 
     /**
-     * Extract all static string constants of the code in activity or fragment
-     * classes. All methods are considered.
+     * Extract all static string constants of the code in activity or fragment classes. All methods are considered.
      *
      * @param components All existing components.
      */
@@ -493,14 +491,12 @@ public final class DexScanner {
             if (com instanceof Activity) {
                 com.addAll(((Activity) com).getMethodStrings());
                 com.addAll(com.getGlobalStrings());
-            }
-            if (com instanceof Fragment) {
+            } else if (com instanceof Fragment) {
                 com.addAll(((Fragment) com).getMethodStrings());
                 com.addAll(com.getGlobalStrings());
             }
         }
     }
-
 
     /**
      * Extracts the components, i.e. activities, services, fragments and
