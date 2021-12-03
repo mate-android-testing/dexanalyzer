@@ -110,7 +110,13 @@ public final class DexScanner {
                     // check whether Context.registerReceiver() is called
                     if (targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;)Landroid/content/Intent;")
-                            // registerReceiver with additional int flag
+                            // further overloaded registerReceiver() methods
+                        || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;I)" +
+                            "Landroid/content/Intent;")
+                        || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
+                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)" +
+                            "Landroid/content/Intent;")
                         || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
                             "Landroid/content/IntentFilter;I)Landroid/content/Intent;")) {
 
@@ -148,17 +154,6 @@ public final class DexScanner {
                             // backtrack intent filter (inherently adds the filter)
                             backtrackIntentFilter(receiver, instructions, index, invoke.getRegisterE());
                         }
-
-                    // further overloaded registerReceiver() methods
-                    } else if (targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
-                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;I)" +
-                            "Landroid/content/Intent;")
-                        || targetMethod.toString().endsWith("registerReceiver(Landroid/content/BroadcastReceiver;" +
-                            "Landroid/content/IntentFilter;Ljava/lang/String;Landroid/os/Handler;)" +
-                            "Landroid/content/Intent;")) {
-
-                        // TODO: it is unclear whether we should handle them or not
-                        LOGGER.debug("Method " + method + " calls " + targetMethod + " at instruction " + i);
                     }
                 }
             }
