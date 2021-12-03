@@ -3,6 +3,7 @@
 This tool performs various static analyses directly on the dalvik bytecode. The current functionality entails:
 
 * The extraction of static data necessary for the `ExecuteMATERandomExplorationIntent` testing strategy.
+* The extraction of static strings used for the input generation of `MATE`.
 
 ## How to run DexAnalyzer
 
