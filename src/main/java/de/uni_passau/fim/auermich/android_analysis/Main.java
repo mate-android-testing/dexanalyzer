@@ -96,11 +96,8 @@ public class Main {
             LOGGER.debug(component);
         }
 
-        // extract the intent data
+        // extract the static intent data
         dexScanner.extractIntentInfo(components);
-
-        // look up for dynamically registered broadcast receivers
-        dexScanner.lookUpDynamicBroadcastReceivers(components);
 
         File outputFile = new File(staticDataDir, "staticIntentInfo.xml");
         PrintStream printStream = new PrintStream(outputFile);

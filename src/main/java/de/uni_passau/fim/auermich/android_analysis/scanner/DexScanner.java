@@ -56,7 +56,7 @@ public final class DexScanner {
      *
      * @param components The list of components.
      */
-    public void lookUpDynamicBroadcastReceivers(List<Component> components) {
+    private void lookUpDynamicBroadcastReceivers(List<Component> components) {
 
         Pattern exclusionPattern = Utility.readExcludePatterns();
 
@@ -401,13 +401,14 @@ public final class DexScanner {
     }
 
     /**
-     * Extracts the relevant data, e.g. string constants, for the ExecuteMATERandomExplorationIntent strategy.
-     * Only considers data from activities, services and broadcast receivers.
+     * Extracts the relevant data for the ExecuteMATERandomExplorationIntent strategy. This includes the extraction of
+     * string constants per component and the discovery of dynamic broadcast receivers.
      *
      * @param components The list of components.
      */
     public void extractIntentInfo(List<Component> components) {
 
+        // parse string constants from the components except fragments
         for (Component component : components) {
 
             if (component instanceof Fragment) {
@@ -429,6 +430,9 @@ public final class DexScanner {
                 scanMethod(component, method, classVariables);
             }
         }
+
+        // look up for dynamically registered broadcast receivers
+        lookUpDynamicBroadcastReceivers(components);
     }
 
     /**
@@ -576,7 +580,6 @@ public final class DexScanner {
         return classVariables;
     }
 
-
     /**
      * Scans a component's interesting methods, e.g. the onCreate method of an activity, for strings and extras.
      *
@@ -673,7 +676,6 @@ public final class DexScanner {
                         if (!stringUsedForOwnIntents(instructions, i, ((OneRegisterInstruction) instruction).getRegisterA())) {
                             methodStrings.add(methodString);
                         }
-
                     }
                 }
             }
@@ -700,7 +702,6 @@ public final class DexScanner {
 
         return convertedType;
     }
-
 
     /**
      * Scans an activity's onCreate and onNewIntent method.
@@ -790,7 +791,6 @@ public final class DexScanner {
                 || invoke.getRegisterG() == register;
     }
 
-
     /**
      * TODO: refactor + add description
      *
@@ -842,7 +842,6 @@ public final class DexScanner {
         return false;
     }
 
-
     /**
      * Searches through the predecessing instructions of the instruction located at index {@param currentIndex} for
      * assignments of the extra value hold in {@param register}. Returns the corresponding key, that is either
@@ -854,7 +853,8 @@ public final class DexScanner {
      * @param globalStrings The set of strings for the a given class.
      * @return Returns the extra's key or {@code null} if the key couldn't be found.
      */
-    private String getExtraKey(List<Instruction> instructions, int currentIndex, int register, Map<String, String> globalStrings) {
+    private String getExtraKey(List<Instruction> instructions, int currentIndex, int register,
+                               Map<String, String> globalStrings) {
 
         EnumSet<Opcode> moveOpcodes = EnumSet.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16,
                 Opcode.MOVE_OBJECT_16);
@@ -974,33 +974,6 @@ public final class DexScanner {
             }
         }
     }
-
-    /**
-     * Looks up all fields in a given class for string constants.
-     *
-     * @param classDef The class file.
-     */
-    private Set<String> lookupStringConstants(ClassDef classDef) {
-
-        Set<String> stringConstants = new HashSet<>();
-
-        // search through all instance and static fields
-        for (Field field : classDef.getFields()) {
-
-            EncodedValue encodedValue = field.getInitialValue();
-
-            if (encodedValue instanceof StringEncodedValue) {
-
-                String value = ((StringEncodedValue) encodedValue).getValue();
-
-                if (!value.isEmpty()) {
-                    stringConstants.add(value);
-                }
-            }
-        }
-        return stringConstants;
-    }
-
 
     /**
      * Checks whether the given class represents an activity, a service, a broadcast receiver or a fragment.
