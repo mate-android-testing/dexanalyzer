@@ -38,6 +38,7 @@ public class Activity extends Component {
     public Set<String> getOnCreateStrings(){
         return onCreateStrings;
     }
+
     public Set<String> getMethodStrings() {
         return getMethodStrings;
     }
