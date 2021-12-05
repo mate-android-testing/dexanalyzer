@@ -427,7 +427,7 @@ public final class DexScanner {
 
             // scan each method
             for (Method method : classDef.getMethods()) {
-                scanMethod(component, method, classVariables);
+                scanMethodForIntentData(component, method, classVariables);
             }
         }
 
@@ -463,7 +463,7 @@ public final class DexScanner {
 
                 if (component instanceof Activity) {
 
-                    scanComponentMethod(method, classVariables,
+                    scanMethodForIntentData(method, classVariables,
                             ((Activity) component).getMethodStrings(),
                             ((Activity) component).getOnCreateExtras());
 
@@ -472,7 +472,7 @@ public final class DexScanner {
 
                 } else if (component instanceof Fragment) {
 
-                    scanComponentMethod(method, classVariables,
+                    scanMethodForIntentData(method, classVariables,
                             ((Fragment) component).getMethodStrings(),
                             ((Fragment) component).getOnCreateExtras());
 
@@ -549,14 +549,14 @@ public final class DexScanner {
      * @param method    The current method to be inspected.
      * @param variables The variable assignments of the component/class.
      */
-    private void scanMethod(Component component, Method method, Map<String, String> variables) {
+    private void scanMethodForIntentData(Component component, Method method, Map<String, String> variables) {
 
         if (component instanceof Activity) {
-            scanActivity((Activity) component, method, variables);
+            scanActivityForIntentData((Activity) component, method, variables);
         } else if (component instanceof Service) {
-            scanService((Service) component, method, variables);
+            scanServiceForIntentData((Service) component, method, variables);
         } else if (component instanceof BroadcastReceiver) {
-            scanReceiver((BroadcastReceiver) component, method, variables);
+            scanReceiverForIntentData((BroadcastReceiver) component, method, variables);
         }
     }
 
@@ -588,8 +588,8 @@ public final class DexScanner {
      * @param methodStrings  The method strings that are getting collected during scanning.
      * @param extras         The extras that are getting collected during scanning.
      */
-    private void scanComponentMethod(Method method, Map<String, String> classVariables, Set<String> methodStrings,
-                                     List<Extra> extras) {
+    private void scanMethodForIntentData(Method method, Map<String, String> classVariables, Set<String> methodStrings,
+                                         List<Extra> extras) {
 
         MethodImplementation implementation = method.getImplementation();
 
@@ -626,7 +626,7 @@ public final class DexScanner {
                             }
 
                             // inspect target method
-                            scanComponentMethod(targetMethod.get(), variables.get(targetClassDef), methodStrings, extras);
+                            scanMethodForIntentData(targetMethod.get(), variables.get(targetClassDef), methodStrings, extras);
                         }
                     }
 
@@ -710,11 +710,11 @@ public final class DexScanner {
      * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanActivity(Activity activity, Method method, Map<String, String> classVariables) {
+    private void scanActivityForIntentData(Activity activity, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onCreate")) {
-            scanComponentMethod(method, classVariables, activity.getOnCreateStrings(), activity.getOnCreateExtras());
+            scanMethodForIntentData(method, classVariables, activity.getOnCreateStrings(), activity.getOnCreateExtras());
         } else if (method.getName().equals("onNewIntent")) {
-            scanComponentMethod(method, classVariables, activity.getOnNewIntentStrings(), activity.getOnNewIntentExtras());
+            scanMethodForIntentData(method, classVariables, activity.getOnNewIntentStrings(), activity.getOnNewIntentExtras());
         }
     }
 
@@ -725,11 +725,11 @@ public final class DexScanner {
      * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanService(Service service, Method method, Map<String, String> classVariables) {
+    private void scanServiceForIntentData(Service service, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onStartCommand")) {
-            scanComponentMethod(method, classVariables, service.getOnStartCommandStrings(), service.getOnStartCommandExtras());
+            scanMethodForIntentData(method, classVariables, service.getOnStartCommandStrings(), service.getOnStartCommandExtras());
         } else if (method.getName().equals("onHandleIntent")) {
-            scanComponentMethod(method, classVariables, service.getOnHandleIntentStrings(), service.getOnHandleIntentExtras());
+            scanMethodForIntentData(method, classVariables, service.getOnHandleIntentStrings(), service.getOnHandleIntentExtras());
         }
     }
 
@@ -740,9 +740,9 @@ public final class DexScanner {
      * @param method         The current method.
      * @param classVariables The variable assignments of the entire class.
      */
-    private void scanReceiver(BroadcastReceiver receiver, Method method, Map<String, String> classVariables) {
+    private void scanReceiverForIntentData(BroadcastReceiver receiver, Method method, Map<String, String> classVariables) {
         if (method.getName().equals("onReceive")) {
-            scanComponentMethod(method, classVariables, receiver.getOnReceiveStrings(), receiver.getOnReceiveExtras());
+            scanMethodForIntentData(method, classVariables, receiver.getOnReceiveStrings(), receiver.getOnReceiveExtras());
         }
     }
 
