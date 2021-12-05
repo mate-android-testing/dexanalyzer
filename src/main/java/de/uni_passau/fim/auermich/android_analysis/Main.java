@@ -69,7 +69,7 @@ public class Main {
                     new BasicDexFileNamer(), null, null);
 
             // scan dex files for the relevant static data
-            DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
+            DexScanner dexScanner = new DexScanner(List.of(mergedDex));
 
             // create the output directory for the static data if not present yet in the respective app folder
             File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");

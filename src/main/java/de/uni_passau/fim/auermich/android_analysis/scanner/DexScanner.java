@@ -36,24 +36,19 @@ public final class DexScanner {
     // the classes.dex files
     private final List<DexFile> dexFiles;
 
-    // the path to the APK
-    private final String apkPath;
-
     // stores per class the variables and their values
-    private Map<ClassDef, Map<String, String>> variables = new HashMap<>();
+    private final Map<ClassDef, Map<String, String>> variables = new HashMap<>();
 
     // all strings that are getting collected during scanning
-    private Set<String> strings = new HashSet<>();
+    private final Set<String> strings = new HashSet<>();
 
     /**
      * Initialises the scanner.
      *
      * @param dexFiles The list of classes.dex files.
-     * @param apkPath  The path to the APK file.
      */
-    public DexScanner(List<DexFile> dexFiles, String apkPath) {
+    public DexScanner(List<DexFile> dexFiles) {
         this.dexFiles = dexFiles;
-        this.apkPath = apkPath;
     }
 
     /**
@@ -366,8 +361,7 @@ public final class DexScanner {
      * @param instructions The set of instructions of the given method.
      * @param currentInstructionIndex The instruction index where to start backtracking from.
      * @param registerID The register id that refers to the register holding the broadcast receiver instance.
-     * @return Returns a {@link BroadcastReceiver} instance or {@code null} if the broadcast receiver
-     *          couldn't be derived.
+     * @return Returns a {@link BroadcastReceiver} instance or {@code null} if the broadcast receiver couldn't be derived.
      */
     private Component backtrackReceiver(List<Component> components, List<Instruction> instructions,
                                         int currentInstructionIndex, int registerID) {
@@ -407,8 +401,8 @@ public final class DexScanner {
     }
 
     /**
-     * Extracts the relevant data, e.g. string constants, for the ExecuteMATERandomExplorationIntent strategy.
-     * Only considers data from activities, services and broadcast receivers.
+     * Extracts the relevant data, e.g. string constants, for the ExecuteMATERandomExplorationIntent strategy. Only
+     * considers data from activities, services and broadcast receivers.
      *
      * @param components The list of components.
      */
@@ -417,9 +411,8 @@ public final class DexScanner {
     }
 
     /**
-     * Extracts the relevant data, e.g. string constants, for the
-     * ExecuteMATERandomExplorationIntent strategy. Only considers data from
-     * activities, services and broadcast receivers.
+     * Extracts the relevant data, e.g. string constants, for the ExecuteMATERandomExplorationIntent strategy. Only
+     * considers data from activities, services and broadcast receivers.
      *
      * @param components The list of components.
      * @param intentInfo Indicates if intentInfo or all static strings should be
@@ -499,8 +492,8 @@ public final class DexScanner {
     }
 
     /**
-     * Extracts the components, i.e. activities, services, fragments and
-     * broadcast receivers, residing in application package.
+     * Extracts the components, i.e. activities, services, fragments and broadcast receivers, residing in the
+     * application package.
      *
      * @param packageName       The application package name.
      * @param resolveAllClasses Whether all classes should be resolved or not.
@@ -556,8 +549,8 @@ public final class DexScanner {
     }
 
     /**
-     * Looks up each constructor in a given class for variable assignments. Returns
-     * a map containing for each variable its initial value.
+     * Looks up each constructor in a given class for variable assignments. Returns a map containing for each variable
+     * its initial value.
      *
      * @param classDef The class to be inspected.
      * @return Returns the map of variables and its values.
@@ -680,8 +673,8 @@ public final class DexScanner {
     }
 
     /**
-     * Converts the type of some extra into an internal representation. That is, the phrase
-     * 'ArrayList' is replaced by '<>' and the phrase 'Array' is replaced by '[]'; the
+     * Converts the type of some extra into an internal representation. That is, the phrase 'ArrayList' is replaced
+     * by '<>' and the phrase 'Array' is replaced by '[]'; the
      * remaining part is left unchanged.
      *
      * @param extraType The extra type to be converted.
@@ -744,7 +737,6 @@ public final class DexScanner {
         }
     }
 
-
     // TODO: documentation (I haven't got the idea of this method yet)
     private boolean stringUsedForOwnIntents(List<Instruction> instructions, int currentIndex, int register) {
 
@@ -774,8 +766,7 @@ public final class DexScanner {
     }
 
     /**
-     * Checks whether the given instruction, which must be of type invoke, uses
-     * as parts of its registers a given register.
+     * Checks whether the given instruction, which must be of type invoke, uses as parts of its registers a given register.
      *
      * @param instruction The invoke instruction.
      * @param register    The register to check whether it is used in the given instruction.
