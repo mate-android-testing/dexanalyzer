@@ -41,8 +41,8 @@ public class Main {
      * Defines the entry point for the static analysis of an APK.
      *
      * @param args The command line arguments. The first argument must refer to the path of the APK.
-     *             The second argument (optional) --rac || --resolve-all-classes denotes whether all classes should
-     *             be resolved or not.
+     *         The second argument (optional) --rac || --resolve-all-classes denotes whether all classes should
+     *         be resolved or not.
      * @throws IOException Should never happen.
      */
     public static void main(String[] args) throws IOException {
@@ -75,7 +75,7 @@ public class Main {
             File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");
             staticDataDir.mkdirs();
 
-            generateStaticStrings(dexScanner,staticDataDir);
+            generateStaticStrings(dexScanner, staticDataDir);
             generateStaticIntentInfo(dexScanner, staticDataDir);
         }
     }
