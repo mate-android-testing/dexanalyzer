@@ -642,7 +642,7 @@ public final class DexScanner {
                     } else if (methodReference.getDefiningClass().equals("Landroid/os/Bundle;")
                             && (methodReference.getName().contains("get")
                             // can only derive the key from it, and only if the key is present -> may remove
-                            || (methodReference).getName().contains("containsKey"))
+                            || methodReference.getName().contains("containsKey"))
                             && isIntentBundle(instructions, i, invoke.getRegisterC())) {
 
                         // get the type of extra, e.g. getString -> String, see the class Bundle for its getter methods
@@ -815,27 +815,28 @@ public final class DexScanner {
     }
 
     /**
-     * TODO: refactor + add description
+     * Checks whether the given register referring to a bundle is used within an intent.
      *
-     * @param instructions The set of instructions.
+     * @param instructions The list of instructions.
      * @param currentIndex The instruction index of the current instruction.
-     * @param register The register ID containing the bundle.
-     * @return Returns {@code true} if ..., otherwise {@code false}.
+     * @param register The register id referring to the bundle.
+     * @return Returns {@code true} if the bundle described by the register is used within an intent, otherwise
+     *         {@code false} is returned.
      */
     private boolean isIntentBundle(List<Instruction> instructions, int currentIndex, int register) {
 
-        EnumSet<Opcode> opcodes = EnumSet.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16,
-                Opcode.MOVE_OBJECT_16);
+        EnumSet<Opcode> moveOpcodes = EnumSet.of(Opcode.MOVE_OBJECT, Opcode.MOVE_OBJECT_FROM16, Opcode.MOVE_OBJECT_16);
 
         for (int i = currentIndex - 1; i >= 0; i--) {
 
             Instruction instruction = instructions.get(i);
 
-            if (opcodes.contains(instruction.getOpcode())) {
+            if (moveOpcodes.contains(instruction.getOpcode())) {
 
                 // all of these move instructions share the TwoRegisterInstruction interface
                 TwoRegisterInstruction twoRegisterInstruction = (TwoRegisterInstruction) instruction;
 
+                // track register flow
                 if (twoRegisterInstruction.getRegisterA() == register) {
                     register = twoRegisterInstruction.getRegisterB();
                 }
