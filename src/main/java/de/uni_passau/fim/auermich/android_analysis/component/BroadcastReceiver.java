@@ -7,8 +7,8 @@ import java.util.*;
 
 public class BroadcastReceiver extends Component {
 
-    private List<Extra> onReceiveExtras;
-    private Set<String> onReceiveStrings;
+    private final List<Extra> onReceiveExtras;
+    private final Set<String> onReceiveStrings;
 
     private boolean isDynamicReceiver = false;
 
@@ -42,6 +42,13 @@ public class BroadcastReceiver extends Component {
 
         return output.toString();
     }
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    protected String getType() {
+        return "broadcastReceiver";
+    }
 
     private String onReceiveToXml() {
         finalizeOnReceive();
@@ -52,7 +59,8 @@ public class BroadcastReceiver extends Component {
                 output.append("        <string value=\"" + makeXmlConform(string) + "\"/>\n");
             }
             for(int i = 0; i < onReceiveExtras.size(); i++) {
-                output.append("        <extra key=\"" + makeXmlConform(onReceiveExtras.get(i).getKey()) + "\" type=\"" + makeXmlConform(onReceiveExtras.get(i).getValueType()) + "\"/>\n");
+                output.append("        <extra key=\"" + makeXmlConform(onReceiveExtras.get(i).getKey()) + "\" type=\""
+                        + makeXmlConform(onReceiveExtras.get(i).getValueType()) + "\"/>\n");
             }
             output.append("    </on_receive>\n");
             return output.toString();
@@ -75,15 +83,15 @@ public class BroadcastReceiver extends Component {
                 }
             }
 
-            Iterator ocIt = onReceiveStrings.iterator();
+            Iterator<String> ocIt = onReceiveStrings.iterator();
             while(ocIt.hasNext()) {
-                String string = (String)ocIt.next();
+                String string = ocIt.next();
                 if(onReceiveExtras.get(i).getKey().equals(string))
                     ocIt.remove();
             }
-            Iterator it = globalStrings.iterator();
+            Iterator<String> it = globalStrings.iterator();
             while (it.hasNext()) {
-                String string = (String)it.next();
+                String string = it.next();
                 if(onReceiveExtras.get(i).getKey().equals(string))
                     it.remove();
             }

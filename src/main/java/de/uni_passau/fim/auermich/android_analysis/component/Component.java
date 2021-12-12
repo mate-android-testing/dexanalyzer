@@ -9,8 +9,11 @@ public abstract class Component {
 
     protected final ClassDef clazz;
     protected final String name;
+
     protected final Set<String> globalStrings;
     protected final List<IntentFilter> intentFilters;
+
+    private final Set<String> staticStrings = new HashSet<>();
 
     public Component(ClassDef clazz) {
         this.clazz = clazz;
@@ -59,6 +62,13 @@ public abstract class Component {
     }
 
     /**
+     * Gets the type of a component. (Is needed for type in xml file)
+     *
+     * @return The type of a component.
+     */
+    protected abstract String getType();
+
+    /**
      * Provides the XML representation of the collected global strings.
      *
      * @return Returns the XML representation of the global strings.
@@ -68,12 +78,37 @@ public abstract class Component {
             StringBuilder output = new StringBuilder();
             output.append("    <global>\n");
             for (String string : globalStrings) {
-                output.append("        <string value='" + makeXmlConform(string) + "'/>\n");
+                output.append("        <string value='" + makeXmlConform(string)
+                        + "'/>\n");
             }
             output.append("    </global>\n");
             return output.toString();
         }
         return "";
+    }
+
+    /**
+     * Converts the collected static strings of a component and converts them to a valid XML representation.
+     *
+     * @return Returns a XML representation of the collected static strings per component.
+     */
+    public String staticStringsToXml() {
+        if (!staticStrings.isEmpty()) {
+            StringBuilder output = new StringBuilder();
+            output.append("<strings class='")
+                    .append(name)
+                    .append("' type='")
+                    .append(getType())
+                    .append("'>\n");
+            for (String string : staticStrings) {
+                output.append("    <string value='")
+                        .append(makeXmlConform(string)).append("'/>\n");
+            }
+            output.append("</strings>\n");
+            return output.toString();
+        } else {
+            return "";
+        }
     }
 
     /**
@@ -113,8 +148,8 @@ public abstract class Component {
 
     public class IntentFilter {
 
-        private Set<String> actions = new HashSet<>();
-        private Set<String> categories = new HashSet<>();
+        private final Set<String> actions = new HashSet<>();
+        private final Set<String> categories = new HashSet<>();
 
         public void addAction(String action) {
             actions.add(action);
@@ -135,15 +170,31 @@ public abstract class Component {
             output.append("    <intent-filter>\n");
 
             for (String action : actions) {
-                output.append("        <action name='" + makeXmlConform(action) + "'/>\n");
+                output.append("        <action name='" + makeXmlConform(action)
+                        + "'/>\n");
             }
 
             for (String category : categories) {
-                output.append("        <category name='" + makeXmlConform(category) + "'/>\n");
+                output.append(
+                        "        <category name='" + makeXmlConform(category)
+                                + "'/>\n");
             }
 
             output.append("    </intent-filter>\n");
             return output.toString();
         }
+    }
+
+    public Set<String> getGlobalStrings() {
+        return globalStrings;
+    }
+
+    /**
+     * Adds a set of string to the {@code allStrings} Set.
+     *
+     * @param strings The set to be added.
+     */
+    public void addStaticStrings(Set<String> strings) {
+        staticStrings.addAll(strings);
     }
 }

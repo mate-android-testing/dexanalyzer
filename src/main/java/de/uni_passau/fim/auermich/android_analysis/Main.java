@@ -41,8 +41,8 @@ public class Main {
      * Defines the entry point for the static analysis of an APK.
      *
      * @param args The command line arguments. The first argument must refer to the path of the APK.
-     *             The second argument (optional) --rac || --resolve-all-classes denotes whether all classes should
-     *             be resolved or not.
+     *         The second argument (optional) --rac || --resolve-all-classes denotes whether all classes should
+     *         be resolved or not.
      * @throws IOException Should never happen.
      */
     public static void main(String[] args) throws IOException {
@@ -69,13 +69,13 @@ public class Main {
                     new BasicDexFileNamer(), null, null);
 
             // scan dex files for the relevant static data
-            DexScanner dexScanner = new DexScanner(List.of(mergedDex), apkFile.getPath());
+            DexScanner dexScanner = new DexScanner(List.of(mergedDex));
 
             // create the output directory for the static data if not present yet in the respective app folder
-            File staticDataDir = new File(apkFile.getParentFile(),
-                    packageName + File.separator + "static_data");
+            File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");
             staticDataDir.mkdirs();
 
+            generateStaticStrings(dexScanner, staticDataDir);
             generateStaticIntentInfo(dexScanner, staticDataDir);
         }
     }
@@ -89,7 +89,6 @@ public class Main {
      */
     private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
 
-        // look up components
         List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
 
         LOGGER.debug("Components: ");
@@ -97,11 +96,8 @@ public class Main {
             LOGGER.debug(component);
         }
 
-        // extract the intent data
+        // extract the static intent data
         dexScanner.extractIntentInfo(components);
-
-        // look up for dynamically registered broadcast receivers
-        dexScanner.lookUpDynamicBroadcastReceivers(components);
 
         File outputFile = new File(staticDataDir, "staticIntentInfo.xml");
         PrintStream printStream = new PrintStream(outputFile);
@@ -117,4 +113,31 @@ public class Main {
 
         printStream.close();
     }
+
+    /**
+     * Generates the staticStrings.xml file which contains all static strings of an APK.
+     *
+     * @param dexScanner Scans the dex files for the static string data.
+     * @param staticDataDir The directory where the staticStrings.xml file should be stored.
+     * @throws FileNotFoundException Should never happen.
+     */
+    private static void generateStaticStrings(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
+
+        List<Component> components = dexScanner.lookUpComponents(packageName, resolveAllClasses);
+
+        dexScanner.extractStringConstants(components);
+        File outputFile = new File(staticDataDir, "staticStrings.xml");
+        PrintStream printStream = new PrintStream(outputFile);
+
+        // write xml header
+        printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"
+                + System.lineSeparator());
+
+        components.forEach(component -> {
+            printStream.print(component.staticStringsToXml());
+            LOGGER.debug(component.staticStringsToXml());
+        });
+        printStream.close();
+    }
+
 }
