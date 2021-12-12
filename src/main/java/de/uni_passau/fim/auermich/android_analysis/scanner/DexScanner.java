@@ -675,10 +675,10 @@ public final class DexScanner {
     }
 
     /**
-     * Scans a component's interesting methods, e.g. the onCreate method of an activity, for strings and extras.
+     * Extracts the string constants of the given method.
      *
      * @param method The method to be inspected.
-     * @param methodStrings The method strings that are getting collected during scanning.
+     * @param methodStrings The method strings collected so far.
      */
     private void scanMethodForStaticStrings(Method method, Set<String> methodStrings) {
 
