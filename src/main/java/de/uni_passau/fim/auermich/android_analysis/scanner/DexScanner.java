@@ -761,10 +761,20 @@ public final class DexScanner {
         }
     }
 
-    // TODO: documentation (I haven't got the idea of this method yet)
+    /**
+     * Checks whether a given string described by its register is used as a parameter of a method call from either
+     * the Intent or Bundle class.
+     *
+     * @param instructions The list of instructions.
+     * @param currentIndex The current instruction index.
+     * @param register The register that holds the static string.
+     * @return Returns {@code true} if the string is used as a parameter of a method call from the Intent or Bundle
+     *         class, otherwise {@code false} is returned.
+     */
     private boolean stringUsedForOwnIntents(List<Instruction> instructions, int currentIndex, int register) {
 
-        // TODO: check all the methods whether this really works
+        // TODO: I don't understand the reasoning behind this check yet.
+
         for (int i = currentIndex + 1; i < instructions.size(); i++) {
 
             Instruction instruction = instructions.get(i);
@@ -781,8 +791,7 @@ public final class DexScanner {
                         || methodReference.getDefiningClass().equals("Landroid/os/Bundle;");
 
                 // if there are several strings / objects passed to a method -> inspect next instruction, otherwise abort
-            } else if (!instruction.getOpcode().name.contains("const")
-                    && !instruction.getOpcode().name.contains("get")) {
+            } else if (!instruction.getOpcode().name.contains("const") && !instruction.getOpcode().name.contains("get")) {
                 break;
             }
         }
@@ -790,12 +799,11 @@ public final class DexScanner {
     }
 
     /**
-     * Checks whether the given instruction, which must be of type invoke, uses as parts of its registers a given register.
+     * Checks whether the given invoke instruction makes use of the given register.
      *
      * @param instruction The invoke instruction.
      * @param register The register to check whether it is used in the given instruction.
-     * @return Returns {@code true} if the invoke instruction uses the given register,
-     *         otherwise {@code false}.
+     * @return Returns {@code true} if the invoke instruction uses the given register, otherwise {@code false}.
      */
     private boolean isInvokeInstructionUsingRegister(Instruction instruction, int register) {
 
@@ -884,7 +892,6 @@ public final class DexScanner {
                 OneRegisterInstruction oneRegisterInstruction = (OneRegisterInstruction) instruction;
 
                 if (oneRegisterInstruction.getRegisterA() == register) {
-                    // TODO: getReference().getString() might be the same as getReference().toString()
                     return ((StringReference) ((ReferenceInstruction) instruction).getReference()).getString();
                 }
             } else if (instruction.getOpcode() == Opcode.SGET_OBJECT
