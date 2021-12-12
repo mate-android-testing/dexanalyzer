@@ -681,13 +681,13 @@ public final class DexScanner {
      * @param methodStrings The method strings that are getting collected during scanning.
      */
     private void scanMethodForStaticStrings(Method method, Set<String> methodStrings) {
+
         MethodImplementation implementation = method.getImplementation();
+
         if (implementation != null) {
-            List<Instruction> instructions = Lists.newArrayList(implementation.getInstructions());
-            instructions.forEach(instruction -> {
+            implementation.getInstructions().forEach(instruction -> {
                 Opcode instructionOpcode = instruction.getOpcode();
-                if (instructionOpcode == Opcode.CONST_STRING
-                        || instructionOpcode == Opcode.CONST_STRING_JUMBO) {
+                if (instructionOpcode == Opcode.CONST_STRING || instructionOpcode == Opcode.CONST_STRING_JUMBO) {
                     ReferenceInstruction referenceInstruction = (ReferenceInstruction) instruction;
                     if (!referenceInstruction.getReference().toString().isEmpty()) {
                         String methodString = ((StringReference) (referenceInstruction).getReference()).getString();
@@ -700,8 +700,7 @@ public final class DexScanner {
 
     /**
      * Converts the type of some extra into an internal representation. That is, the phrase 'ArrayList' is replaced
-     * by '<>' and the phrase 'Array' is replaced by '[]'; the
-     * remaining part is left unchanged.
+     * by '<>' and the phrase 'Array' is replaced by '[]'; the remaining part is left unchanged.
      *
      * @param extraType The extra type to be converted.
      * @return Returns the converted extra type.
