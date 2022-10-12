@@ -126,13 +126,17 @@ public class Main {
         PrintStream printStream = new PrintStream(outputFile);
 
         // write xml header
-        printStream.print("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>"
-                + System.lineSeparator());
+        printStream.println("<?xml version=\"1.0\" encoding=\"utf-8\" standalone=\"no\"?>");
+
+        // a virtual root node is mandatory for the lxml parser in python
+        printStream.println("<components>");
 
         components.forEach(component -> {
-            printStream.print(component.toXmlSimple() + System.lineSeparator());
+            printStream.println(component.toXmlSimple());
             LOGGER.debug(component.toXmlSimple());
         });
+
+        printStream.println("</components>");
 
         printStream.close();
     }
