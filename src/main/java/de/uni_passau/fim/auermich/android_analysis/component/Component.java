@@ -10,6 +10,10 @@ public abstract class Component {
     protected final ClassDef clazz;
     protected final String name;
 
+    // components are enabled by default but not exported by default
+    protected boolean exported = false;
+    protected boolean enabled = true;
+
     protected final Set<String> globalStrings;
     protected final List<IntentFilter> intentFilters;
 
@@ -22,6 +26,18 @@ public abstract class Component {
         intentFilters = new ArrayList<>();
     }
 
+    /**
+     * Necessary for parsing components from the manifest.
+     *
+     * @param className The class name of the component.
+     */
+    public Component(String className) {
+        this.clazz = null;
+        this.name = className;
+        globalStrings = new LinkedHashSet<>();
+        intentFilters = new ArrayList<>();
+    }
+
     public void addIntentFilter(IntentFilter intentFilter) {
         intentFilters.add(intentFilter);
     }
@@ -29,6 +45,22 @@ public abstract class Component {
     public void addStringConstant(String constant) {
         assert constant != null;
         globalStrings.add(constant);
+    }
+
+    public boolean isExported() {
+        return exported;
+    }
+
+    public void setExported(boolean exported) {
+        this.exported = exported;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 
     /**
@@ -47,6 +79,15 @@ public abstract class Component {
      */
     public String getName() {
         return name;
+    }
+
+    // a simplified xml representation of a component solely containing the name and the attributes exported and enabled
+    public String toXmlSimple() {
+        return "<" + getType()
+                + " name=\"" + makeXmlConform(name) + "\""
+                + " enabled=\"" + enabled +"\""
+                + " exported=\"" + exported +"\""
+                + "></" + getType() + ">";
     }
 
     /**
@@ -145,6 +186,18 @@ public abstract class Component {
         return name;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Component component = (Component) o;
+        return name.equals(component.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name);
+    }
 
     public class IntentFilter {
 

@@ -13,6 +13,14 @@ public class Activity extends Component {
     private final List<Extra> onCreateExtras;
     private final Set<String> onCreateStrings;
     private final Set<String> getMethodStrings;
+    public Activity(String className) {
+        super(className);
+        onNewIntentExtras = new ArrayList<>();
+        onNewIntentStrings = new LinkedHashSet<>();
+        onCreateExtras = new ArrayList<>();
+        onCreateStrings = new LinkedHashSet<>();
+        getMethodStrings = new HashSet<>();
+    }
 
     public Activity(ClassDef clazz) {
         super(clazz);

@@ -13,6 +13,13 @@ public class Service extends Component{
     private final List<Extra> onHandleIntentExtras;
     private final Set<String> onHandleIntentStrings;
 
+    public Service(String className) {
+        super(className);
+        onStartCommandExtras = new ArrayList<>();
+        onStartCommandStrings = new LinkedHashSet<>();
+        onHandleIntentExtras = new ArrayList<>();
+        onHandleIntentStrings = new LinkedHashSet<>();
+    }
     public Service(ClassDef clazz) {
         super(clazz);
         onStartCommandExtras = new ArrayList<>();

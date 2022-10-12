@@ -2,21 +2,21 @@ package de.uni_passau.fim.auermich.android_analysis.scanner;
 
 import com.google.common.collect.Lists;
 import de.uni_passau.fim.auermich.android_analysis.component.*;
+import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 import de.uni_passau.fim.auermich.android_analysis.utility.ClassUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.ComponentUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.MethodUtils;
 import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
-import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.OneRegisterInstruction;
 import org.jf.dexlib2.iface.instruction.ReferenceInstruction;
 import org.jf.dexlib2.iface.instruction.TwoRegisterInstruction;
-import org.jf.dexlib2.iface.instruction.formats.*;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction35c;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
 import org.jf.dexlib2.iface.reference.Reference;
@@ -43,13 +43,21 @@ public final class DexScanner {
     // all strings that are getting collected during scanning
     private final Set<String> strings = new HashSet<>();
 
+    // the package name of the AUT
+    private final String packageName;
+
+    // whether all classes should be resolved or only classes belonging to the application package
+    private final boolean resolveAllClasses;
+
     /**
      * Initialises the scanner.
      *
      * @param dexFiles The list of classes.dex files.
      */
-    public DexScanner(List<DexFile> dexFiles) {
+    public DexScanner(List<DexFile> dexFiles, final String packageName, final boolean resolveAllClasses) {
         this.dexFiles = dexFiles;
+        this.packageName = packageName;
+        this.resolveAllClasses = resolveAllClasses;
     }
 
     /**
@@ -57,7 +65,7 @@ public final class DexScanner {
      *
      * @param components The list of components.
      */
-    private void lookUpDynamicBroadcastReceivers(List<Component> components) {
+    public void lookUpDynamicBroadcastReceivers(List<Component> components) {
 
         Pattern exclusionPattern = Utility.readExcludePatterns();
 
@@ -66,9 +74,11 @@ public final class DexScanner {
 
             for (ClassDef classDef : classes) {
 
-                // skip ART classes
                 String className = ClassUtils.dottedClassName(classDef.toString());
-                if (exclusionPattern != null && exclusionPattern.matcher(className).matches()) {
+
+                // skip certain classes, e.g. ART classes
+                if ((exclusionPattern != null && exclusionPattern.matcher(className).matches())
+                        || (!resolveAllClasses && !className.startsWith(packageName))) {
                     continue;
                 }
 
@@ -497,16 +507,12 @@ public final class DexScanner {
     }
 
     /**
-     * Extracts the components, i.e. activities, services, fragments and broadcast receivers, residing in the
-     * application package.
+     * Extracts the components, i.e. activities, services, fragments and broadcast receivers.
      *
-     * @param packageName The application package name.
-     * @param resolveAllClasses Whether all classes should be resolved or not.
      * @return Returns the list of retrieved components.
      */
-    public List<Component> lookUpComponents(final String packageName, final boolean resolveAllClasses) {
+    public List<Component> lookUpComponents() {
 
-        // exclude certain classes from inspection, e.g. ART classes
         Pattern exclusionPattern = Utility.readExcludePatterns();
 
         List<Component> components = new ArrayList<>();
@@ -519,7 +525,7 @@ public final class DexScanner {
 
                 String className = ClassUtils.dottedClassName(classDef.toString());
 
-                // skip classes that are belonging to the app package
+                // skip certain classes, e.g. ART classes
                 if ((exclusionPattern != null && exclusionPattern.matcher(className).matches())
                         || (!resolveAllClasses && !className.startsWith(packageName))) {
                     continue;
@@ -535,16 +541,6 @@ public final class DexScanner {
         return components;
     }
 
-    /**
-     * Checks whether the given class in an abstract class.
-     *
-     * @param classDef The class to be checked.
-     * @return Returns {@code true} if the given class is declared abstract, otherwise {@code false} is returned.
-     */
-    private static boolean isAbstractClass(ClassDef classDef) {
-        return Arrays.stream(AccessFlags.getAccessFlagsForClass(classDef.getAccessFlags()))
-                .anyMatch(flag -> flag == AccessFlags.ABSTRACT);
-    }
     /**
      * Invokes the correct scan method depending on the component's type.
      *

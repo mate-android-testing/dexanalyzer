@@ -12,6 +12,12 @@ public class BroadcastReceiver extends Component {
 
     private boolean isDynamicReceiver = false;
 
+    public BroadcastReceiver(String className) {
+        super(className);
+        onReceiveExtras = new ArrayList<>();
+        onReceiveStrings = new LinkedHashSet<>();
+    }
+
     public BroadcastReceiver(ClassDef clazz) {
         super(clazz);
         onReceiveExtras = new ArrayList<>();
@@ -42,12 +48,24 @@ public class BroadcastReceiver extends Component {
 
         return output.toString();
     }
+
+    // a simplified xml representation of a component solely containing the name and the attributes exported and enabled
+    @Override
+    public String toXmlSimple() {
+        return "<" + getType()
+                + " name=\"" + makeXmlConform(name) + "\""
+                + " enabled=\"" + enabled +"\""
+                + " exported=\"" + exported +"\""
+                + " dynamic=\"" + isDynamicReceiver +"\""
+                + "></" + getType() + ">";
+    }
+
     /**
      * {@inheritDoc}
      */
     @Override
     protected String getType() {
-        return "broadcastReceiver";
+        return "receiver";
     }
 
     private String onReceiveToXml() {

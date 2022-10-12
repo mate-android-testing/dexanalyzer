@@ -2,8 +2,10 @@ package de.uni_passau.fim.auermich.android_analysis.utility;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.iface.ClassDef;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -193,5 +195,16 @@ public final class ComponentUtils {
             }
         }
         return false;
+    }
+
+    /**
+     * Checks whether the given class in an abstract class.
+     *
+     * @param classDef The class to be checked.
+     * @return Returns {@code true} if the given class is declared abstract, otherwise {@code false} is returned.
+     */
+    public static boolean isAbstractClass(ClassDef classDef) {
+        return Arrays.stream(AccessFlags.getAccessFlagsForClass(classDef.getAccessFlags()))
+                .anyMatch(flag -> flag == AccessFlags.ABSTRACT);
     }
 }
