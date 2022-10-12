@@ -9,6 +9,7 @@ import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jf.dexlib2.AccessFlags;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.iface.*;
 import org.jf.dexlib2.iface.instruction.Instruction;
@@ -534,6 +535,16 @@ public final class DexScanner {
         return components;
     }
 
+    /**
+     * Checks whether the given class in an abstract class.
+     *
+     * @param classDef The class to be checked.
+     * @return Returns {@code true} if the given class is declared abstract, otherwise {@code false} is returned.
+     */
+    private static boolean isAbstractClass(ClassDef classDef) {
+        return Arrays.stream(AccessFlags.getAccessFlagsForClass(classDef.getAccessFlags()))
+                .anyMatch(flag -> flag == AccessFlags.ABSTRACT);
+    }
     /**
      * Invokes the correct scan method depending on the component's type.
      *
