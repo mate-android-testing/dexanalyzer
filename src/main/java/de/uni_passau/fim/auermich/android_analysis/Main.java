@@ -58,9 +58,7 @@ public class Main {
      * @throws IOException Should never happen.
      */
     public static void main(String[] args) throws IOException {
-
-        Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.INFO);
-
+        
         if (args.length < 1) {
             LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk> --resolve-all-classes (OPTIONAL). " +
                     "The APK need to be named after the package name of the app!");
