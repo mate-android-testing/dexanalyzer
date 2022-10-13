@@ -47,6 +47,9 @@ public final class ComponentUtils {
      */
     private static final Set<String> SERVICE_CLASSES = new HashSet<>() {{
         add("Landroid/app/Service;");
+        add("Landroid/app/IntentService;");
+        add("Landroid/widget/RemoteViewsService;");
+        add("Landroid/app/job/JobService;");
     }};
 
     /**
