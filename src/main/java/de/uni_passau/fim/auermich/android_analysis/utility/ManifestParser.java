@@ -37,7 +37,7 @@ public class ManifestParser {
 
     public List<Component> extractComponents() {
 
-        LOGGER.info("Parsing Manifest for components!");
+        LOGGER.debug("Parsing Manifest for components!");
 
         List<Component> components = new ArrayList<>();
 

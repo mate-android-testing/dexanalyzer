@@ -10,8 +10,10 @@ import de.uni_passau.fim.auermich.android_analysis.utility.Utility;
 import lanchon.multidexlib2.BasicDexFileNamer;
 import lanchon.multidexlib2.MultiDexIO;
 import org.apache.commons.io.FileUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.jf.dexlib2.iface.DexFile;
 
 import java.io.File;
@@ -57,6 +59,8 @@ public class Main {
      */
     public static void main(String[] args) throws IOException {
 
+        Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.INFO);
+
         if (args.length < 1) {
             LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk> --resolve-all-classes (OPTIONAL). " +
                     "The APK need to be named after the package name of the app!");
@@ -65,12 +69,12 @@ public class Main {
             // we assume that the name of the APK corresponds to the package name of the app
             File apkFile = new File(args[0]);
             packageName = apkFile.getName().replace(".apk", "");
-            LOGGER.debug("Package Name: " + packageName);
+            LOGGER.info("Package Name: " + packageName);
 
             if (args.length == 2) {
                 String argument = args[1];
                 if (argument.equals("--rac") || argument.equals("--resolve-all-classes")) {
-                    LOGGER.debug("Resolving all classes!");
+                    LOGGER.info("Resolving all classes!");
                     resolveAllClasses = true;
                 }
             }
@@ -110,6 +114,8 @@ public class Main {
      */
     private static void generateComponentInfo(DexScanner dexScanner, File staticDataDir,
                                               File decodedAPKPath) throws FileNotFoundException {
+
+        LOGGER.info("Generating components.xml file...");
 
         // we are only interested in activities, services and broadcast receivers
         List<Component> allComponents = dexScanner.lookUpComponents().stream()
@@ -153,6 +159,8 @@ public class Main {
                 continue;
             }
 
+            LOGGER.debug("Looking up component: " + component.getName());
+
             // the component should be discoverable in the code
             Component codeComponent = allComponents.get(allComponents.indexOf(component));
 
@@ -184,6 +192,8 @@ public class Main {
      * @throws FileNotFoundException Should never happen.
      */
     private static void generateStaticIntentInfo(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
+
+        LOGGER.info("Generating staticIntentInfo.xml file...");
 
         List<Component> components = dexScanner.lookUpComponents();
 
@@ -218,6 +228,8 @@ public class Main {
      * @throws FileNotFoundException Should never happen.
      */
     private static void generateStaticStrings(DexScanner dexScanner, File staticDataDir) throws FileNotFoundException {
+
+        LOGGER.info("Generating staticStrings.xml file...");
 
         List<Component> components = dexScanner.lookUpComponents();
 

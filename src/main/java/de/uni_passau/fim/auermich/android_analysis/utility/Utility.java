@@ -41,7 +41,7 @@ public final class Utility {
         File parentDir = apkPath.getParentFile();
         File outputDir = new File(parentDir, "decodedAPK");
 
-        LOGGER.info("Decoding Output Dir: " + outputDir);
+        LOGGER.debug("Decoding Output Dir: " + outputDir);
         decoder.setOutDir(outputDir);
 
         // overwrites existing dir: -f
