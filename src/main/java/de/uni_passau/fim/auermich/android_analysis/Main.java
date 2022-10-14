@@ -60,7 +60,9 @@ public class Main {
     public static void main(String[] args) throws IOException {
         
         if (args.length < 1) {
-            LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk> --resolve-all-classes (OPTIONAL). " +
+            LOGGER.info("Usage: java -jar dexanalyzer.jar <path-to-apk> " +
+                    "--resolve-all-classes (OPTIONAL) " +
+                    "--debug (OPTIONAL). " +
                     "The APK need to be named after the package name of the app!");
         } else {
 
@@ -69,11 +71,18 @@ public class Main {
             packageName = apkFile.getName().replace(".apk", "");
             LOGGER.info("Package Name: " + packageName);
 
-            if (args.length == 2) {
-                String argument = args[1];
-                if (argument.equals("--rac") || argument.equals("--resolve-all-classes")) {
-                    LOGGER.info("Resolving all classes!");
-                    resolveAllClasses = true;
+            if (args.length > 1) {
+                for (int i = 1; i < args.length; i++) {
+                    String argument = args[i];
+                    if (argument.equals("--rac") || argument.equals("--resolve-all-classes")) {
+                        LOGGER.info("Resolving all classes!");
+                        resolveAllClasses = true;
+                    } else if (argument.equals("--d") || argument.equals("--debug")) {
+                        LOGGER.info("Debug mode on!");
+                        Configurator.setAllLevels(LogManager.getRootLogger().getName(), Level.DEBUG);
+                    } else {
+                        LOGGER.info("Unknown command line option: " + argument);
+                    }
                 }
             }
 
