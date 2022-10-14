@@ -43,7 +43,7 @@ public class ManifestParser {
         return mainActivity;
     }
 
-    public List<Component> extractComponents(String packageName) {
+    public List<Component> extractComponents() {
 
         LOGGER.debug("Parsing Manifest for components!");
 
@@ -71,6 +71,9 @@ public class ManifestParser {
                         if (componentName.startsWith(".")) {
                             // use the full-qualified name
                             componentName = packageName + componentName;
+                        } else if (!componentName.startsWith(packageName)) {
+                            // this seems weird but also legit
+                            componentName = packageName + "." + componentName;
                         }
 
                         Component component = translateToComponent(componentType, componentName);
