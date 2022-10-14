@@ -56,7 +56,10 @@ dependencies {
 task customFatJar(type: Jar) {
 
     manifest {
-        attributes "Main-Class": "de.uni_passau.fim.auermich.android_analysis.Main"
+        attributes (
+                "Main-Class": "de.uni_passau.fim.auermich.android_analysis.Main",
+                "Multi-Release": true
+        )
     }
 
     archiveName(rootProject.name + '.jar')
