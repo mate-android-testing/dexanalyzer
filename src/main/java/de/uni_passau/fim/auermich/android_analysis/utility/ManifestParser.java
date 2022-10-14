@@ -71,8 +71,8 @@ public class ManifestParser {
                         if (componentName.startsWith(".")) {
                             // use the full-qualified name
                             componentName = packageName + componentName;
-                        } else if (!componentName.startsWith(packageName)) {
-                            // this seems weird but also legit
+                        } else if (Character.isUpperCase(componentName.charAt(0))) {
+                            // some components are declared without any package at all
                             componentName = packageName + "." + componentName;
                         }
 
