@@ -35,7 +35,15 @@ public class ManifestParser {
         MANIFEST = manifest;
     }
 
-    public List<Component> extractComponents() {
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public String getMainActivity() {
+        return mainActivity;
+    }
+
+    public List<Component> extractComponents(String packageName) {
 
         LOGGER.debug("Parsing Manifest for components!");
 
@@ -59,6 +67,12 @@ public class ManifestParser {
                         Element element = (Element) node;
 
                         String componentName = element.getAttribute("android:name");
+
+                        if (componentName.startsWith(".")) {
+                            // use the full-qualified name
+                            componentName = packageName + componentName;
+                        }
+
                         Component component = translateToComponent(componentType, componentName);
 
                         if (element.hasAttribute("android:enabled")) {

@@ -130,7 +130,9 @@ public class Main {
                 .collect(Collectors.toList());
 
         ManifestParser manifest = new ManifestParser(decodedAPKPath + File.separator + "AndroidManifest.xml");
-        List<Component> manifestComponents = manifest.extractComponents();
+        LOGGER.debug("Could successfully parse package name and main activity: "
+                + manifest.extractMainActivityAndPackageName());
+        List<Component> manifestComponents = manifest.extractComponents(manifest.getPackageName());
 
         List<Component> components = mergeComponents(allComponents, manifestComponents);
         dexScanner.lookUpDynamicBroadcastReceivers(components);
