@@ -127,12 +127,15 @@ public class Main {
         // we are only interested in activities, services and broadcast receivers
         List<Component> allComponents = dexScanner.lookUpComponents().stream()
                 .filter(component -> !(component instanceof Fragment))
+                .peek(component -> LOGGER.debug("Code Component: " + component))
                 .collect(Collectors.toList());
 
         ManifestParser manifest = new ManifestParser(decodedAPKPath + File.separator + "AndroidManifest.xml");
         LOGGER.debug("Could successfully parse package name and main activity: "
                 + manifest.extractMainActivityAndPackageName());
         List<Component> manifestComponents = manifest.extractComponents();
+
+        manifestComponents.forEach(component -> LOGGER.debug("Manifest Component: " + component));
 
         List<Component> components = mergeComponents(allComponents, manifestComponents);
         dexScanner.lookUpDynamicBroadcastReceivers(components);
