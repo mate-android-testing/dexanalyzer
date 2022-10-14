@@ -27,6 +27,7 @@ public final class ComponentUtils {
         add("Landroid/support/v7/app/ActionBarActivity;");
         add("Landroid/support/v4/app/FragmentActivity;");
         add("Landroid/preference/PreferenceActivity;");
+        add("Landroid/app/ListActivity;");
     }};
 
     /**
