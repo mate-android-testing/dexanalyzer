@@ -167,17 +167,23 @@ public class Main {
                 components.add(component);
                 continue;
             }
+            
+            int index = allComponents.indexOf(component);
 
-            LOGGER.debug("Looking up component: " + component.getName());
+            if (index != -1) {
 
-            // the component should be discoverable in the code
-            Component codeComponent = allComponents.get(allComponents.indexOf(component));
+                // the component should be discoverable in the code
+                Component codeComponent = allComponents.get(allComponents.indexOf(component));
 
-            // copy over attributes
-            codeComponent.setEnabled(component.isEnabled());
-            codeComponent.setExported(component.isExported());
+                // copy over attributes
+                codeComponent.setEnabled(component.isEnabled());
+                codeComponent.setExported(component.isExported());
 
-            components.add(codeComponent);
+                components.add(codeComponent);
+            } else {
+                // the AndroidManifest.xml might be not in sync with the code base
+                LOGGER.warn("Couldn't find in code base the component: " + component);
+            }
         }
 
         // the remaining components should be primarily dynamic broadcast receivers and abstract component classes
