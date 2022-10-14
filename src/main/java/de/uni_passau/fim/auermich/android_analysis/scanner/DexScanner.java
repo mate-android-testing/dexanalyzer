@@ -528,6 +528,7 @@ public final class DexScanner {
                 // skip certain classes, e.g. ART classes
                 if ((exclusionPattern != null && exclusionPattern.matcher(className).matches())
                         || (!resolveAllClasses && !className.startsWith(packageName))) {
+                    LOGGER.debug("Skip class: " + className);
                     continue;
                 }
 
