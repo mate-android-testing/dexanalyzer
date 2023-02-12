@@ -329,8 +329,13 @@ public final class DexScanner {
             currentInstructionIndex--;
         }
 
-        // add intent filter to component
-        receiver.addIntentFilter(intentFilter);
+        /*
+        * Only add the intent filter if not empty, since we can only send an implicit intent to a dynamic receiver.
+        * Without any action, we likely not reach the dynamic receiver.
+         */
+        if (intentFilter.hasAction()) {
+            receiver.addIntentFilter(intentFilter);
+        }
     }
 
     /**

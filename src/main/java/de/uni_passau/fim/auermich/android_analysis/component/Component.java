@@ -212,6 +212,10 @@ public abstract class Component {
             categories.add(category);
         }
 
+        public boolean hasAction() {
+            return !actions.isEmpty();
+        }
+
         /**
          * Converts an intent-filter to a custom xml representation.
          *
