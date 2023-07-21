@@ -5,6 +5,15 @@ plugins {
 
 repositories {
     mavenCentral()
+
+    // This seems to be a temporary fix to properly build the JAR. Remove once smali/baksmali/dexlib2 is fetched from
+    // official Google repo, see https://github.com/iBotPeaches/Apktool/pull/2941.
+    maven {
+        url 'https://jitpack.io'
+        content {
+            includeGroup('com.github.iBotPeaches.smali')
+        }
+    }
 }
 
 group 'de.uni-passau.fim.auermich.android-analysis'
@@ -44,7 +53,7 @@ dependencies {
     }
 
     // https://mvnrepository.com/artifact/org.apktool/apktool-lib
-    implementation group: 'org.apktool', name: 'apktool-lib', version: '2.6.1'
+    implementation group: 'org.apktool', name: 'apktool-lib', version: '2.7.0'
 
     // https://mvnrepository.com/artifact/commons-io/commons-io
     implementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
