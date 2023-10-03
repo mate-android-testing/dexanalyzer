@@ -67,7 +67,7 @@ public class Main {
 
             // we assume that the name of the APK corresponds to the package name of the app
             File apkFile = new File(args[0]);
-            packageName = apkFile.getName().replace(".apk", "");
+            packageName = apkFile.getName().substring(0, apkFile.getName().lastIndexOf("."));
             LOGGER.info("Package Name: " + packageName);
 
             if (args.length > 1) {
