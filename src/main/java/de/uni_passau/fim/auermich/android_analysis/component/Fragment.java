@@ -1,7 +1,7 @@
 package de.uni_passau.fim.auermich.android_analysis.component;
 
 import de.uni_passau.fim.auermich.android_analysis.component.bundle.Extra;
-import org.jf.dexlib2.iface.ClassDef;
+import com.android.tools.smali.dexlib2.iface.ClassDef;
 
 import java.util.HashSet;
 import java.util.List;

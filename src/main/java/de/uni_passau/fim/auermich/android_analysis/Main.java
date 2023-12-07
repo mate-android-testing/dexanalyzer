@@ -14,7 +14,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
-import org.jf.dexlib2.iface.DexFile;
+import com.android.tools.smali.dexlib2.iface.DexFile;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -86,16 +86,16 @@ public class Main {
             }
 
             // decode the APK file
-            File decodedAPKPath = Utility.decodeAPK(apkFile);
+            final File decodedAPKPath = Utility.decodeAPK(apkFile);
 
-            DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
+            final DexFile mergedDex = MultiDexIO.readDexFile(true, apkFile,
                     new BasicDexFileNamer(), null, null);
 
             // scan dex files for the relevant static data
-            DexScanner dexScanner = new DexScanner(List.of(mergedDex), packageName, resolveAllClasses);
+            final DexScanner dexScanner = new DexScanner(List.of(mergedDex), packageName, resolveAllClasses);
 
             // create the output directory for the static data if not present yet in the respective app folder
-            File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");
+            final File staticDataDir = new File(apkFile.getParentFile(), packageName + File.separator + "static_data");
             staticDataDir.mkdirs();
 
             generateComponentInfo(dexScanner, staticDataDir, decodedAPKPath);

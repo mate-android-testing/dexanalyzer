@@ -2,8 +2,8 @@ package de.uni_passau.fim.auermich.android_analysis.utility;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jf.dexlib2.AccessFlags;
-import org.jf.dexlib2.iface.ClassDef;
+import com.android.tools.smali.dexlib2.AccessFlags;
+import com.android.tools.smali.dexlib2.iface.ClassDef;
 
 import java.util.Arrays;
 import java.util.HashSet;

@@ -1,7 +1,9 @@
 package de.uni_passau.fim.auermich.android_analysis.utility;
 
 import brut.androlib.ApkDecoder;
-import brut.common.BrutException;
+import brut.androlib.Config;
+import brut.androlib.exceptions.AndrolibException;
+import brut.directory.DirectoryException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -25,8 +27,10 @@ public final class Utility {
 
     /**
      * Decodes a given APK using apktool.
+     *
+     * @return Returns the path of the decoded APK.
      */
-    public static File decodeAPK(File apkPath) {
+    public static File decodeAPK(final File apkPath) {
 
         // set 3rd party library (apktool) logging to 'SEVERE'
         java.util.logging.Logger rootLogger = java.util.logging.Logger.getLogger("");
@@ -35,42 +39,40 @@ public final class Utility {
             h.setLevel(Level.SEVERE);
         }
 
-        ApkDecoder decoder = new ApkDecoder(apkPath);
-
-        // path where we want to decode the APK (the same directory as the APK)
-        File parentDir = apkPath.getParentFile();
-        File outputDir = new File(parentDir, "decodedAPK");
-
-        LOGGER.debug("Decoding Output Dir: " + outputDir);
-        decoder.setOutDir(outputDir);
-
-        // overwrites existing dir: -f
-        decoder.setForceDelete(true);
+        final Config config = Config.getDefaultConfig();
+        config.forceDelete = true; // overwrites existing dir: -f
 
         try {
+            // do not decode dex classes to smali: -s
+            config.setDecodeSources(Config.DECODE_SOURCES_NONE);
 
-            // whether to decode classes.dex into smali files: -s
-            decoder.setDecodeSources(ApkDecoder.DECODE_SOURCES_NONE);
+            /*
+             * TODO: Right now we need to decode the resources completely although we only need to alter the manifest.
+             *  While decoding only the manifest works and even re-packaging succeeds, the APK cannot be properly signed
+             *  anymore: https://github.com/iBotPeaches/Apktool/issues/3389
+             */
 
-            // whether to decode the AndroidManifest.xml
-            // decoder.setForceDecodeManifest(ApkDecoder.FORCE_DECODE_MANIFEST_FULL);
+            // do not decode resources: -r
+            // config.setDecodeResources(Config.DECODE_RESOURCES_NONE);
 
-            // whether to decode resources: -r
-            // TODO: there seems to be some problem with the AndroidManifest if we don't fully decode resources
-            // decoder.setDecodeResources(ApkDecoder.DECODE_RESOURCES_NONE);
+            // decode the manifest: --force-manifest
+            // config.setForceDecodeManifest(Config.FORCE_DECODE_MANIFEST_FULL);
 
-            decoder.decode();
-            decoder.close();
+            // path where we want to decode the APK (the same directory as the APK)
+            File parentDir = apkPath.getParentFile();
+            File outputDir = new File(parentDir, "decodedAPK");
 
-            // the dir where the decoded content can be found
+            LOGGER.debug("Decoding Output Dir: " + outputDir);
+
+            final ApkDecoder decoder = new ApkDecoder(config, apkPath);
+            decoder.decode(outputDir);
             return outputDir;
-        } catch (BrutException | IOException e) {
+        } catch (AndrolibException | IOException | DirectoryException e) {
             LOGGER.warn("Failed to decode APK file!");
             LOGGER.warn(e.getMessage());
             throw new IllegalStateException(e);
         }
     }
-
 
     /**
      * Generates patterns of classes which should be excluded from the instrumentation.
