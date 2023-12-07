@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * ContentProvider string constants, key-value pairs, etc. The collected information is saved in
  * a customized XML document.
  *
- * @author Auer Michael
+ * @author Michael Auer
  * @author Felix Raster
  */
 public class Main {
