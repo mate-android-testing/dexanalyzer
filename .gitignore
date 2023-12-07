@@ -128,7 +128,7 @@ gradle-app.setting
 !gradle-wrapper.jar
 
 # Avoid ignoring the required dependencies
-!libs/
+!libs/multidexlib2.jar
 
 # Cache of project
 .gradletasknamecache
